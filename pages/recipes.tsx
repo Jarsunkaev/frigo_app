@@ -64,7 +64,7 @@ function SavedRecipes() {
   if (!user) return <div>Loading...</div>;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fcf9ed] mr-1 ml-1">
+    <div className="flex min-h-screen flex-col bg-[#fcf9ed]">
       <Header />
       <div className="flex-grow container mx-auto px-4 py-8 mt-32">
         <h1 className="text-3xl font-bold text-center mb-8 text-[#193722]">Saved Recipes</h1>
@@ -104,7 +104,7 @@ function SavedRecipes() {
       {selectedRecipe && (
   <div className="fixed inset-0 flex items-center justify-center p-4 z-50" onClick={closeInstructions}>
     <div 
-      className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-3xl shadow-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      className="bg-white bg-opacity-45 backdrop-filter backdrop-blur-lg rounded-3xl shadow-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex justify-between items-center mb-4">
@@ -119,7 +119,7 @@ function SavedRecipes() {
         </button>
       </div>
       <h3 className="font-bold text-[#193722] mb-2">Instructions:</h3>
-      <p className="text-[#193722] text-sm mb-4 whitespace-pre-line">
+      <p className="text-[#193722] text-lg mb-4 whitespace-pre-line">
         {sanitizeInstructions(selectedRecipe.instructions)}
       </p>
     </div>
