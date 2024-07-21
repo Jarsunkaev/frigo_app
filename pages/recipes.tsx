@@ -64,7 +64,7 @@ function SavedRecipes() {
   if (!user) return <div>Loading...</div>;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fcf9ed]">
+    <div className="flex min-h-screen flex-col bg-[#fcf9ed] mr-1 ml-1">
       <Header />
       <div className="flex-grow container mx-auto px-4 py-8 mt-32">
         <h1 className="text-3xl font-bold text-center mb-8 text-[#193722]">Saved Recipes</h1>

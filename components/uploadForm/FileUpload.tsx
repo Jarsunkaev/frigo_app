@@ -127,6 +127,8 @@ function FileUpload() {
           backdrop-filter: blur(12px);
           border-radius: 20px;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+          margin-top: 0; /* Adjusted top margin */
+          margin-bottom: 0.5rem; /* Adjusted bottom margin */
         }
         
         .recipe-card {
@@ -145,10 +147,6 @@ function FileUpload() {
         @media (max-width: 767px) {
           .mobile-no-shadow {
             box-shadow: none !important;
-          }
-          
-          .modal-content {
-            background: rgba(255, 255, 255, 0.30);
           }
         }
         
@@ -169,7 +167,7 @@ function FileUpload() {
         }
 
         .save-popup {
-          background: rgba(25, 55, 34, 0.30);
+          background: rgba(25, 55, 34, 0.9);
           backdrop-filter: blur(8px);
           border-radius: 12px;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -180,7 +178,6 @@ function FileUpload() {
           font-size: 1.2rem; /* Increased font size for legibility */
           line-height: 1.6;
           color: #193722;
-          background: rgba(255, 255, 255, 0.9); /* Default background */
         }
         
         .modal-title {
@@ -204,80 +201,80 @@ function FileUpload() {
           color: #fcf9ed;
         }
       `}</style>
-      <div
-        ref={menuRef}
-        className="max-w-lg w-full mt-32 mb-20 mx-auto p-8 frosted-glass mobile-no-shadow text-white"
-      >
-        <div className="pb-4 relative text-center">
-          <i className="text-base text-gray-300 mb-4 block">
-            Did you know: {randomFact}
-          </i>
-        </div>
-
-        <label className="block text-white text-sm font-bold mb-2">Pick An Image Or Take One</label>
-
+      <div className="flex justify-center items-start min-h-screen bg-[#fcf9ed] pt-36">
         <div
-          {...getRootProps()}
-          className={`bg-amber-50 focus:outline-none focus:shadow-outline border-2 border-dashed border-amber-600 rounded-lg py-12 px-4 flex items-center justify-center text-center ${
-            isDragActive ? 'bg-amber-100' : ''
-          }`}
-          style={{ cursor: "pointer" }}
+          ref={menuRef}
+          className="max-w-lg w-full p-6 frosted-glass mobile-no-shadow text-white mx-4"
         >
-          <input {...getInputProps()} className="hidden" />
-          {imageSrc ? (
-            <img src={imageSrc} alt="Uploaded" className="w-full h-full object-contain" />
-          ) : (
-            <p className="text-gray-700">Drag 'n' drop an image here, or click to select one</p>
-          )}
-        </div>
-
-        {isLoading && <Spinner />}
-        {error && <p className="text-center mt-4 text-red-500">{error}</p>}
-
-        {identifiedIngredients.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            <h3 className="text-lg font-bold mb-2 w-full">Identified Ingredients:</h3>
-            {identifiedIngredients.map((ingredient, index) => (
-              <span key={index} className="px-3 py-1 rounded-full text-gray-700 bg-amber-100 border border-amber-500 text-sm">
-                {ingredient}
-              </span>
-            ))}
+          <div className="pb-4 relative text-center">
+            <i className="text-base text-gray-300 mb-4 block">
+              Did you know: {randomFact}
+            </i>
           </div>
-        )}
 
-        {recipes.length > 0 && (
-          <div className="mt-4">
-            <h3 className="text-lg font-bold mb-2">Generated Recipes:</h3>
-            <div className="flex flex-col space-y-4">
-              {recipes.map((recipe) => (
-                <div key={recipe.id} className="recipe-card overflow-hidden">
-                  <div className="p-4">
-                    <h4 className="font-bold mb-2">{recipe.title}</h4>
-                    <img src={recipe.image} alt={recipe.title} className="w-full max-h-64 object-cover mb-4 rounded-md" />
-                    <button
-                      className="recipe-button"
-                      onClick={() => handleRecipeClick(recipe.id)}
-                    >
-                      View Recipe
-                    </button>
-                    <button
-                      className="recipe-button"
-                      onClick={() => handleSaveRecipe(recipe)}
-                    >
-                      ❤️ Save Recipe
-                    </button>
-                  </div>
-                </div>
+          <div
+            {...getRootProps()}
+            className={`bg-amber-50 focus:outline-none focus:shadow-outline border-2 border-dashed border-amber-600 rounded-lg py-12 px-4 flex items-center justify-center text-center ${
+              isDragActive ? 'bg-amber-100' : ''
+            }`}
+            style={{ cursor: "pointer" }}
+          >
+            <input {...getInputProps()} className="hidden" />
+            {imageSrc ? (
+              <img src={imageSrc} alt="Uploaded" className="w-full h-full object-contain" />
+            ) : (
+              <p className="text-gray-700">Drag 'n' drop an image here, or click to select one</p>
+            )}
+          </div>
+
+          {isLoading && <Spinner />}
+          {error && <p className="text-center mt-4 text-red-500">{error}</p>}
+
+          {identifiedIngredients.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <h3 className="text-lg font-bold mb-2 w-full">Identified Ingredients:</h3>
+              {identifiedIngredients.map((ingredient, index) => (
+                <span key={index} className="px-3 py-1 rounded-full text-gray-700 bg-amber-100 border border-amber-500 text-sm">
+                  {ingredient}
+                </span>
               ))}
             </div>
-          </div>
-        )}
+          )}
+
+          {recipes.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-2xl font-bold mb-4">Recipes:</h3>
+              <div className="flex flex-col space-y-4">
+                {recipes.map((recipe) => (
+                  <div key={recipe.id} className="recipe-card overflow-hidden">
+                    <div className="p-4">
+                      <h4 className="font-bold mb-2">{recipe.title}</h4>
+                      <img src={recipe.image} alt={recipe.title} className="w-full max-h-64 object-cover mb-4 rounded-md" />
+                      <button
+                        className="recipe-button"
+                        onClick={() => handleRecipeClick(recipe.id)}
+                      >
+                        View Recipe
+                      </button>
+                      <button
+                        className="recipe-button"
+                        onClick={() => handleSaveRecipe(recipe)}
+                      >
+                        ❤️ Save Recipe
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {selectedRecipe && (
         <div className="fixed inset-0 flex items-center justify-center p-4 z-50" onClick={() => setSelectedRecipe(null)}>
           <div 
-            className="bg-opacity-45 bg-white backdrop-filter backdrop-blur-lg rounded-3xl shadow-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white bg-opacity-45 backdrop-filter backdrop-blur-lg rounded-3xl shadow-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto modal-content"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
@@ -301,7 +298,7 @@ function FileUpload() {
               href={selectedRecipe.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="modal-button"
+              className="modal-button "
             >
               Go to Recipe
             </a>

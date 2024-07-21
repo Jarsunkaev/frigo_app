@@ -26,7 +26,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fcf9ed]">
+    <div className="flex min-h-screen flex-col bg-[#fcf9ed] mr-1 ml-1">
       <Header />
       <div className="flex min-h-screen items-center justify-center">
         <div className="w-full max-w-md p-8 bg-white bg-opacity-40 backdrop-filter backdrop-blur-md rounded-3xl shadow-lg border-2 border-[#193722]">
