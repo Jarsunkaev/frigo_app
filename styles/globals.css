@@ -125,3 +125,18 @@ body {
     box-shadow: none !important;
   }
 }
+
+@keyframes floatAndFade {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.1;
+  }
+  50% {
+    transform: translateY(-20px);
+    opacity: 0.3;
+  }
+}
+
+.circle-animation {
+  animation: floatAndFade 10s infinite ease-in-out;
+}

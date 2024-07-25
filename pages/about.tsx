@@ -5,19 +5,11 @@ import Footer from "../components/footer/Footer";
 const AboutPage = () => {
   return (
     <div className="bg-fcf9ed min-h-screen relative">
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden md:hidden">
-        <svg className="absolute top-0 left-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="5%" cy="10%" r="50" fill="#10B981" opacity="0.1" />
-          <circle cx="95%" cy="50%" r="100" fill="#10B981" opacity="0.1" />
-          <circle cx="10%" cy="90%" r="70" fill="#10B981" opacity="0.1" />
-        </svg>
-      </div>
-
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden hidden md:block">
-        <svg className="absolute top-0 left-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="5%" cy="10%" r="50" fill="#10B981" opacity="0.1" />
-          <circle cx="95%" cy="50%" r="100" fill="#10B981" opacity="0.1" />
-          <circle cx="10%" cy="90%" r="70" fill="#10B981" opacity="0.1" />
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <svg className="absolute w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <circle className="circle-animation" cx="5%" cy="10%" r="50" fill="#10B981" />
+          <circle className="circle-animation" cx="95%" cy="50%" r="100" fill="#10B981" />
+          <circle className="circle-animation" cx="10%" cy="90%" r="70" fill="#10B981" />
         </svg>
       </div>
 
@@ -44,7 +36,7 @@ const AboutPage = () => {
           <div className="max-w-4xl mx-auto mt-16 relative mb-24">
             <div className="bg-white bg-opacity-40 backdrop-filter backdrop-blur-xl rounded-3xl shadow-lg p-8 relative z-10 border border-white border-opacity-20">
               <h2 className="text-4xl font-bold text-center my-8 text-[#193722]">
-                Join the Food Waste Revolution
+                Join the Fight Against Food Waste
               </h2>
               <div className="text-center">
                 <p className="text-xl mb-6 text-[#193722]">
@@ -66,15 +58,20 @@ const AboutPage = () => {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              {['Snap a Pic', 'AI Food Detective', 'Recipe Matchmaker', 'Cook, Eat, Repeat'].map((title, index) => (
+              {[
+                { title: 'Capture Ingredients', img: 'camera.png' },
+                { title: 'Recognize Ingredients', img: 'ingredients.jpg' },
+                { title: 'Match Recipe', img: 'onlinerec.jpg' },
+                { title: 'Cook, Eat, Repeat', img: 'food.jpg' }
+              ].map((item, index) => (
                 <div key={index} className="bg-white bg-opacity-60 backdrop-filter backdrop-blur-lg rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
                   <img
-                    src={`${title.toLowerCase().replace(/ /g, '-')}.png`}
-                    alt={title}
+                    src={item.img}
+                    alt={item.title}
                     className="w-full h-64 object-cover"
                   />
                   <div className="p-6">
-                    <h3 className="text-2xl font-bold text-[#193722] mb-4">{`${index + 1}. ${title}`}</h3>
+                    <h3 className="text-2xl font-bold text-[#193722] mb-4">{`${index + 1}. ${item.title}`}</h3>
                     <p className="text-lg text-[#193722]">
                     </p>
                   </div>
