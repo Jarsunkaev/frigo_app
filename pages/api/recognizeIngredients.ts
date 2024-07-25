@@ -48,7 +48,6 @@ interface UploadedFiles {
             console.log("Parsed Files:", files);  
             resolve(files as unknown as UploadedFiles);
           });
-          
         });
     } catch (error) {
       return res.status(400).json({ error: 'Error processing uploaded file.' });
@@ -56,18 +55,18 @@ interface UploadedFiles {
   
     const imageFile = data.image[0];
 
-if (!imageFile) {
-  return res.status(400).json({ error: 'Image not correctly provided.' });
-}
+    if (!imageFile) {
+      return res.status(400).json({ error: 'Image not correctly provided.' });
+    }
 
-const imageBuffer = fs.readFileSync(imageFile.filepath);  
-const imageKey = `uploads/${Date.now()}_${imageFile.originalFilename}`;  
-await S3.putObject({
-  Bucket: "myreciperecognitionbucket",
-  Key: imageKey,
-  Body: imageBuffer,
-  ContentType: imageFile.mimetype,  
-}).promise();
+    const imageBuffer = fs.readFileSync(imageFile.filepath);  
+    const imageKey = `uploads/${Date.now()}_${imageFile.originalFilename}`;  
+    await S3.putObject({
+      Bucket: "myreciperecognitionbucket",
+      Key: imageKey,
+      Body: imageBuffer,
+      ContentType: imageFile.mimetype,  
+    }).promise();
   
     try {
       const rekognitionResult = await Rekognition.detectLabels({
@@ -78,6 +77,7 @@ await S3.putObject({
           },
         },
         MaxLabels: 10,
+        MinConfidence: 65
       }).promise();
   
       const ingredients = rekognitionResult.Labels?.map((label) => label.Name) || [];

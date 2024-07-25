@@ -260,7 +260,7 @@ function FileUpload() {
                         className="recipe-button"
                         onClick={() => handleSaveRecipe(recipe)}
                       >
-                        ❤️ Save Recipe
+                        Save Recipe
                       </button>
                     </div>
                   </div>

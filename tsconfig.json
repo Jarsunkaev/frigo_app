@@ -18,7 +18,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["eslint", "eslint-scope", "estree", "json-schema"]
+    "types": ["@types/eslint", "@types/eslint-scope", "@types/estree", "@types/json-schema"]
   },
   "include": ["next-env.d.ts", "src/**/*"],
   "exclude": ["node_modules"]
