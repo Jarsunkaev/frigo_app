@@ -5,11 +5,19 @@ import Footer from "../components/footer/Footer";
 const AboutPage = () => {
   return (
     <div className="bg-fcf9ed min-h-screen relative">
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <svg className="absolute w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <circle className="circle-animation" cx="5%" cy="10%" r="50" fill="#10B981" />
-          <circle className="circle-animation" cx="95%" cy="50%" r="100" fill="#10B981" />
-          <circle className="circle-animation" cx="10%" cy="90%" r="70" fill="#10B981" />
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden md:hidden">
+        <svg className="absolute top-0 left-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="5%" cy="10%" r="50" fill="#10B981" opacity="0.1" className="moving-circle" />
+          <circle cx="95%" cy="50%" r="100" fill="#10B981" opacity="0.1" className="moving-circle" />
+          <circle cx="10%" cy="90%" r="70" fill="#10B981" opacity="0.1" className="moving-circle" />
+        </svg>
+      </div>
+
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden hidden md:block">
+        <svg className="absolute top-0 left-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="5%" cy="10%" r="50" fill="#10B981" opacity="0.1" className="moving-circle" />
+          <circle cx="95%" cy="50%" r="100" fill="#10B981" opacity="0.1" className="moving-circle" />
+          <circle cx="10%" cy="90%" r="70" fill="#10B981" opacity="0.1" className="moving-circle" />
         </svg>
       </div>
 

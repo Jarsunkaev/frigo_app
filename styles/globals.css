@@ -51,6 +51,21 @@ body {
   opacity: 1;
 }
 
+.aspect-w-16 {
+  position: relative;
+  padding-bottom: 56.25%; /* 9/16 = 0.5625 */
+}
+
+.aspect-w-16 > * {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
 /* Header styles */
 .header-blur {
   background-color: rgba(252, 249, 237, 0.8);
@@ -65,7 +80,7 @@ body {
   left: 0;
   right: 0;
   height: 20px;
-  background: linear-gradient(to bottom, rgba(252, 249, 237, 0.8), rgba(252, 249, 237, 0));
+  background: linear-gradient(to bottom, #fcf9edcc, rgba(252, 249, 237, 0));
   pointer-events: none;
 }
 
@@ -139,4 +154,32 @@ body {
 
 .circle-animation {
   animation: floatAndFade 10s infinite ease-in-out;
+}
+
+@keyframes move {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(20px, 30px);
+  }
+  50% {
+    transform: translate(-20px, -30px);
+  }
+  75% {
+    transform: translate(30px, -20px);
+  }
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.moving-circle {
+  animation: move 10s infinite alternate ease-in-out, fadeInOut 5s infinite alternate;
 }

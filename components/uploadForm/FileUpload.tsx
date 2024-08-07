@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from "react-dropzone";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../../pages/api/firebase";
@@ -33,13 +33,12 @@ function FileUpload() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [identifiedIngredients, setIdentifiedIngredients] = useState<string[]>([]);
+  const [newIngredient, setNewIngredient] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeDetails | null>(null);
   const [randomFact, setRandomFact] = useState<string>("");
   const [user] = useAuthState(auth);
   const [savedRecipeId, setSavedRecipeId] = useState<number | null>(null);
-
-  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchRandomFact() {
@@ -119,6 +118,37 @@ function FileUpload() {
     }
   };
 
+  const handleDeleteIngredient = (ingredient: string) => {
+    setIdentifiedIngredients(identifiedIngredients.filter(item => item !== ingredient));
+  };
+
+  const handleAddIngredient = () => {
+    if (newIngredient.trim() !== '') {
+      setIdentifiedIngredients([...identifiedIngredients, newIngredient.trim()]);
+      setNewIngredient('');
+    }
+  };
+
+  const handleGenerateRecipes = async () => {
+    if (identifiedIngredients.length === 0) {
+      alert("Please add some ingredients first.");
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await axios.post<Recipe[]>("/api/generateRecipe", {
+        ingredients: identifiedIngredients,
+      });
+      setRecipes(response.data);
+    } catch (error) {
+      console.error("Failed to generate recipes:", error);
+      setError("Failed to generate recipes. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
       <style>{`
@@ -127,16 +157,17 @@ function FileUpload() {
           backdrop-filter: blur(12px);
           border-radius: 20px;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
-          margin-top: 0; /* Adjusted top margin */
-          margin-bottom: 0.5rem; /* Adjusted bottom margin */
         }
         
         .recipe-card {
-          background: rgba(252, 249, 237, 0.1);
+          background: rgba(252, 249, 237, 0.4);
           backdrop-filter: blur(8px);
           border-radius: 15px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          border: 2px solid rgba(25, 55, 34, 0.3);
           transition: all 0.3s ease;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
         }
         
         .recipe-card:hover {
@@ -144,124 +175,200 @@ function FileUpload() {
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        @media (max-width: 767px) {
-          .mobile-no-shadow {
-            box-shadow: none !important;
-          }
-        }
-        
-        .recipe-button {
-          background: transparent;
-          border: 2px solid #fcf9ed;
-          color: #fcf9ed;
-          border-radius: 8px;
-          padding: 8px 16px;
-          transition: all 0.3s ease;
-          margin-bottom: 8px;
+        .recipe-image-container {
+          position: relative;
           width: 100%;
-          cursor: pointer;
-        }
-        
-        .recipe-button:hover {
-          background: rgba(252, 249, 237, 0.1);
+          padding-top: 75%; /* 4:3 Aspect Ratio */
+          overflow: hidden;
         }
 
-        .save-popup {
-          background: rgba(25, 55, 34, 0.9);
-          backdrop-filter: blur(8px);
-          border-radius: 12px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .recipe-image {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
-
-        /* Modal styles */
-        .modal-content {
-          font-size: 1.2rem; /* Increased font size for legibility */
-          line-height: 1.6;
-          color: #193722;
-        }
-        
-        .modal-title {
-          font-size: 1.8rem; /* Larger title font size */
-        }
-        
-        .modal-button {
-          cursor: pointer;
+  
+        .elegant-button {
           background: transparent;
           border: 2px solid #193722;
           color: #193722;
+          font-weight: bold;
           border-radius: 8px;
-          padding: 8px 16px;
+          padding: 10px 20px;
           transition: all 0.3s ease;
-          margin-top: 16px;
-          width: 100%;
         }
-        
-        .modal-button:hover {
+
+        .ingredient-pill {
+          display: inline-flex;
+          align-items: center;
+          background: rgba(25, 55, 34, 0.1);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(25, 55, 34, 0.5);
+          border-radius: 15px;
+          padding: 6px 12px;
+          margin: 4px;
+          font-size: 0.875rem;
+          color: #193722;
+          transition: all 0.3s ease;
+        }
+
+        .ingredient-pill:hover {
+          background: rgba(25, 55, 34, 0.2);
+          border-color: rgba(25, 55, 34, 0.8);
+        }
+
+        .ingredient-pill button {
+          background: transparent;
+          border: none;
+          color: #193722;
+          font-size: 1.25rem;
+          cursor: pointer;
+          margin-left: 8px;
+          transition: color 0.3s ease;
+        }
+
+        .ingredient-pill button:hover {
+          color: #ff6b6b;
+        }
+      
+        .elegant-button:hover {
           background: #193722;
           color: #fcf9ed;
         }
+
+        .add-ingredient-button {
+          background: #193722;
+          color: #fcf9ed;
+          border: none;
+          font-weight: bold;
+          border-radius: 0 8px 8px 0;
+          padding: 10px 20px;
+          transition: all 0.3s ease;
+        }
+      
+        .add-ingredient-button:hover {
+          background: #254b2d;
+        }
+
+        .drag-drop-zone {
+          background: rgba(25, 55, 34, 0.1);
+          backdrop-filter: blur(8px);
+          border: 2px dashed rgba(25, 55, 34, 0.5);
+          transition: all 0.3s ease;
+        }
+
+        .drag-drop-zone:hover, .drag-drop-zone.active {
+          background: rgba(25, 55, 34, 0.2);
+          border-color: rgba(25, 55, 34, 0.8);
+        }
+
+        .generate-button {
+          background: #193722;
+          color: #fcf9ed;
+          border: none;
+          font-weight: bold;
+          border-radius: 8px;
+          padding: 12px 24px;
+          transition: all 0.3s ease;
+          width: 60%;
+          margin: 0 auto;
+          display: block;
+        }
+      
+        .generate-button:hover {
+          background: #254b2d;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
       `}</style>
-      <div className="flex justify-center items-start min-h-screen bg-[#fcf9ed] pt-36">
-        <div
-          ref={menuRef}
-          className="max-w-lg w-full p-6 frosted-glass mobile-no-shadow text-white mx-4"
-        >
-          <div className="pb-4 relative text-center">
-            <i className="text-base text-gray-300 mb-4 block">
-              Did you know: {randomFact}
-            </i>
-          </div>
+      <div className="flex justify-center items-center min-h-screen p-4 bg-[#fcf9ed]">
+        <div className="bg-white bg-opacity-40 backdrop-filter backdrop-blur-md p-6 rounded-3xl shadow-lg w-full max-w-2xl border-2 border-[#193722]">
+          <h2 className="text-2xl font-bold mb-4 text-[#193722]">Recipe Generator</h2>
+          <p className="text-[#193722] mb-4">{randomFact}</p>
 
           <div
             {...getRootProps()}
-            className={`bg-amber-50 focus:outline-none focus:shadow-outline border-2 border-dashed border-amber-600 rounded-lg py-12 px-4 flex items-center justify-center text-center ${
-              isDragActive ? 'bg-amber-100' : ''
-            }`}
-            style={{ cursor: "pointer" }}
+            className={`flex items-center justify-center rounded-lg p-8 drag-drop-zone ${
+              isDragActive ? 'active' : ''
+            } mb-6 cursor-pointer`}
           >
             <input {...getInputProps()} className="hidden" />
             {imageSrc ? (
               <img src={imageSrc} alt="Uploaded" className="w-full h-full object-contain" />
             ) : (
-              <p className="text-gray-700">Drag 'n' drop an image here, or click to select one</p>
+              <p className="text-[#193722] text-center">
+                <span className="block text-3xl mb-2"></span>
+                Drag 'n' drop an image here,<br />or click to select one
+              </p>
             )}
           </div>
 
           {isLoading && <Spinner />}
-          {error && <p className="text-center mt-4 text-red-500">{error}</p>}
+          {error && <p className="text-center mt-4 text-red-600">{error}</p>}
 
           {identifiedIngredients.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              <h3 className="text-lg font-bold mb-2 w-full">Identified Ingredients:</h3>
-              {identifiedIngredients.map((ingredient, index) => (
-                <span key={index} className="px-3 py-1 rounded-full text-gray-700 bg-amber-100 border border-amber-500 text-sm">
-                  {ingredient}
-                </span>
-              ))}
+            <div className="mt-4 mb-6">
+              <h3 className="text-lg font-bold mb-2 text-[#193722]">Identified Ingredients:</h3>
+              <div className="flex flex-wrap justify-center">
+                {identifiedIngredients.map((ingredient, index) => (
+                  <div key={index} className="ingredient-pill">
+                    {ingredient}
+                    <button onClick={() => handleDeleteIngredient(ingredient)} className="ml-2 text-sm">
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
+          <div className="mt-4 mb-8">
+            <div className="flex">
+              <input
+                type="text"
+                value={newIngredient}
+                onChange={(e) => setNewIngredient(e.target.value)}
+                placeholder="Add new ingredient"
+                className="flex-grow px-4 py-2 border-2 border-r-0 border-[#193722] rounded-l-lg text-[#193722] bg-white bg-opacity-50"
+              />
+              <button onClick={handleAddIngredient} className="add-ingredient-button">
+                Add
+              </button>
+            </div>
+          </div>
+
+          <button onClick={handleGenerateRecipes} className="generate-button">
+            Generate Recipes
+          </button>
+
           {recipes.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-2xl font-bold mb-4">Recipes:</h3>
-              <div className="flex flex-col space-y-4">
+            <div className="mt-8">
+              <h3 className="text-2xl font-bold mb-4 text-[#193722]">Recipes:</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {recipes.map((recipe) => (
                   <div key={recipe.id} className="recipe-card overflow-hidden">
-                    <div className="p-4">
-                      <h4 className="font-bold mb-2">{recipe.title}</h4>
-                      <img src={recipe.image} alt={recipe.title} className="w-full max-h-64 object-cover mb-4 rounded-md" />
-                      <button
-                        className="recipe-button"
-                        onClick={() => handleRecipeClick(recipe.id)}
-                      >
-                        View Recipe
-                      </button>
-                      <button
-                        className="recipe-button"
-                        onClick={() => handleSaveRecipe(recipe)}
-                      >
-                        Save Recipe
-                      </button>
+                    <div className="p-4 flex flex-col h-full">
+                      <h4 className="font-bold mb-2 text-[#193722]">{recipe.title}</h4>
+                      <div className="recipe-image-container mb-4">
+                        <img src={recipe.image} alt={recipe.title} className="recipe-image rounded-lg" />
+                      </div>
+                      <div className="flex justify-between mt-auto">
+                        <button
+                          className="elegant-button flex-1 mr-2"
+                          onClick={() => handleRecipeClick(recipe.id)}
+                        >
+                          View Recipe
+                        </button>
+                        <button
+                          className="elegant-button flex-1 ml-2"
+                          onClick={() => handleSaveRecipe(recipe)}
+                        >
+                          Save Recipe
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -270,20 +377,20 @@ function FileUpload() {
           )}
         </div>
       </div>
-
+  
       {selectedRecipe && (
         <div className="fixed inset-0 flex items-center justify-center p-4 z-50" onClick={() => setSelectedRecipe(null)}>
           <div 
-            className="bg-white bg-opacity-45 backdrop-filter backdrop-blur-lg rounded-3xl shadow-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto modal-content"
+            className="bg-white bg-opacity-45 backdrop-filter backdrop-blur-lg rounded-3xl shadow-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
-              <h2 className="modal-title">{selectedRecipe.title}</h2>
+              <h2 className="text-2xl font-bold text-[#193722]">{selectedRecipe.title}</h2>
               <button 
                 onClick={() => setSelectedRecipe(null)}
                 className="text-[#193722] hover:text-red-600 transition-colors duration-300"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -292,23 +399,23 @@ function FileUpload() {
             <p className="text-[#193722] text-xl mb-4">Ready in: {selectedRecipe.readyInMinutes} mins</p>
             <h3 className="font-bold text-[#193722] text-2xl mb-2">Instructions:</h3>
             <p className="text-[#193722] text-lg mb-4 whitespace-pre-line">
-              {selectedRecipe.instructions.replace(/<[^>]*>/g, '')}
+              {selectedRecipe.instructions ? selectedRecipe.instructions.replace(/<[^>]*>/g, '') : 'No instructions available.'}
             </p>
+            
             <a
               href={selectedRecipe.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="modal-button "
+              className="block w-full py-2 bg-transparent text-[#193722] font-bold text-center rounded-lg border-2 border-[#193722] hover:bg-[#193722] hover:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#193722]" 
             >
               Go to Recipe
             </a>
           </div>
         </div>
       )}
-
       {savedRecipeId !== null && (
         <div className="fixed top-0 left-0 right-0 flex justify-center items-center p-4 z-50">
-          <div className="save-popup text-white px-4 py-2 rounded-full flex items-center">
+          <div className="bg-[#193722] text-white px-4 py-2 rounded-full flex items-center">
             <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
             </svg>

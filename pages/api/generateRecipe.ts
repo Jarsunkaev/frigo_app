@@ -36,7 +36,7 @@ export default async function generateRecipe(req: NextApiRequest, res: NextApiRe
             params: {
                 apiKey: process.env.SPOONACULAR_API_KEY,
                 ingredients: ingredients.join(','),
-                number: 5,
+                number: 6,
             }
         });
 

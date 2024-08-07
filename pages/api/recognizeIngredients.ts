@@ -77,7 +77,7 @@ interface UploadedFiles {
           },
         },
         MaxLabels: 10,
-        MinConfidence: 65
+        MinConfidence: 60,
       }).promise();
   
       const ingredients = rekognitionResult.Labels?.map((label) => label.Name) || [];
