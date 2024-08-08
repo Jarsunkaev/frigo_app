@@ -356,7 +356,7 @@ function FileUpload() {
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
       `}</style>
-      <div className="flex justify-center items-center min-h-screen p-4 bg-[#fcf9ed] pt-20 mt-20">
+      <div className="flex justify-center items-center min-h-screen p-4 bg-[#fcf9ed] mt-10 pt-5">
         <div className="bg-white bg-opacity-40 backdrop-filter backdrop-blur-md p-6 rounded-3xl shadow-lg w-full max-w-2xl border-2 border-[#193722]">
           <h2 className="text-2xl font-bold mb-4 text-[#193722]">Recipe Generator</h2>
           <p className="text-[#193722] mb-4">{randomFact}</p>
