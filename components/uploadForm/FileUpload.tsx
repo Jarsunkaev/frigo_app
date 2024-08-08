@@ -217,11 +217,11 @@ function FileUpload() {
         }
 
         .modal-overlay {
-          z-index: 1000; /* Increased z-index to appear above header */
+          z-index: 1000;
         }
 
         .notification {
-          z-index: 1001; /* Increased z-index to appear above modal and header */
+          z-index: 1001;
         }
 
         .frosted-glass {
@@ -250,7 +250,7 @@ function FileUpload() {
         .recipe-image-container {
           position: relative;
           width: 100%;
-          padding-top: 75%; /* 4:3 Aspect Ratio */
+          padding-top: 75%;
           overflow: hidden;
         }
 
@@ -355,9 +355,29 @@ function FileUpload() {
           transform: translateY(-2px);
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
+        .content-wrapper {
+          padding-top: 6rem; /* Increased top padding for mobile */
+          min-height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+        }
+
+        @media (min-width: 640px) {
+          .content-wrapper {
+            padding-top: 8rem; /* Increased top padding for larger screens */
+          }
+        }
+
+        .recipe-generator {
+          margin-top: 2rem; /* Added margin to separate from header */
+          width: 100%;
+          max-width: 2xl;
+        }
       `}</style>
-      <div className="flex justify-center items-center min-h-screen p-4 bg-[#fcf9ed] mt-10 pt-5">
-        <div className="bg-white bg-opacity-40 backdrop-filter backdrop-blur-md p-6 rounded-3xl shadow-lg w-full max-w-2xl border-2 border-[#193722]">
+      <div className="flex justify-start items-start min-h-screen p-4 mt-20 bg-[#fcf9ed] content-wrapper">
+        <div className="bg-white bg-opacity-40 backdrop-filter backdrop-blur-md p-6 rounded-3xl shadow-lg w-full max-w-2xl border-2 border-[#193722] recipe-generator">
           <h2 className="text-2xl font-bold mb-4 text-[#193722]">Recipe Generator</h2>
           <p className="text-[#193722] mb-4">{randomFact}</p>
 
