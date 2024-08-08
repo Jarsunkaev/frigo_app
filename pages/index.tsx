@@ -8,13 +8,13 @@ import { AuthProvider } from "../context/AuthContext";
 function HomePage() {
   return (
     <AuthProvider>
-      <div className="flex flex-col min-h-screen bg-[#fcf9ed] relative">
-
+      <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow -mt-2 mb-2 relative z-10">
-          <FileUpload />
+        <main className="flex-grow pt-16"> {/* Add padding-top to account for fixed header */}
+          <div className="container mx-auto px-4 py-8">
+            <FileUpload />
+          </div>
         </main>
-
         <Footer />
       </div>
     </AuthProvider>

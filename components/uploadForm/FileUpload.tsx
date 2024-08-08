@@ -20,11 +20,56 @@ type RecipeDetails = {
   image: string;
   instructions: string;
   sourceUrl: string;
+  extendedIngredients: Array<{ original: string }>;
 };
 
 const Spinner = () => (
   <div className="flex justify-center items-center mt-4">
-    <div className="w-16 h-16 border-t-4 border-amber-500 border-solid rounded-full animate-spin"></div>
+    <svg className="w-16 h-16" viewBox="0 0 50 50">
+      <circle
+        cx="25"
+        cy="25"
+        r="20"
+        fill="none"
+        stroke="#e6f4ea"
+        strokeWidth="4"
+      />
+      <circle
+        cx="25"
+        cy="25"
+        r="20"
+        fill="none"
+        stroke="#193722"
+        strokeWidth="4"
+        strokeDasharray="31.4 31.4"
+        strokeLinecap="round"
+        transform="rotate(-90 25 25)"
+      >
+        <animateTransform
+          attributeName="transform"
+          type="rotate"
+          from="0 25 25"
+          to="360 25 25"
+          dur="1s"
+          repeatCount="indefinite"
+        />
+      </circle>
+      <path
+        d="M25 15 L25 20 M25 30 L25 35 M15 25 L20 25 M30 25 L35 25"
+        stroke="#193722"
+        strokeWidth="4"
+        strokeLinecap="round"
+      >
+        <animateTransform
+          attributeName="transform"
+          type="rotate"
+          from="0 25 25"
+          to="360 25 25"
+          dur="6s"
+          repeatCount="indefinite"
+        />
+      </path>
+    </svg>
   </div>
 );
 
@@ -152,6 +197,33 @@ function FileUpload() {
   return (
     <>
       <style>{`
+        .modal-content {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(25, 55, 34, 0.2) transparent;
+        }
+
+        .modal-content::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+          background-color: rgba(25, 55, 34, 0.2);
+          border-radius: 20px;
+          border: transparent;
+        }
+
+        .modal-overlay {
+          z-index: 1000; /* Increased z-index to appear above header */
+        }
+
+        .notification {
+          z-index: 1001; /* Increased z-index to appear above modal and header */
+        }
+
         .frosted-glass {
           background: rgba(25, 55, 34, 0.7);
           backdrop-filter: blur(12px);
@@ -284,7 +356,7 @@ function FileUpload() {
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
       `}</style>
-      <div className="flex justify-center items-center min-h-screen p-4 bg-[#fcf9ed]">
+      <div className="flex justify-center items-center min-h-screen p-4 bg-[#fcf9ed] pt-20 mt-20">
         <div className="bg-white bg-opacity-40 backdrop-filter backdrop-blur-md p-6 rounded-3xl shadow-lg w-full max-w-2xl border-2 border-[#193722]">
           <h2 className="text-2xl font-bold mb-4 text-[#193722]">Recipe Generator</h2>
           <p className="text-[#193722] mb-4">{randomFact}</p>
@@ -377,11 +449,11 @@ function FileUpload() {
           )}
         </div>
       </div>
-  
+
       {selectedRecipe && (
-        <div className="fixed inset-0 flex items-center justify-center p-4 z-50" onClick={() => setSelectedRecipe(null)}>
+        <div className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50 modal-overlay" onClick={() => setSelectedRecipe(null)}>
           <div 
-            className="bg-white bg-opacity-45 backdrop-filter backdrop-blur-lg rounded-3xl shadow-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white bg-opacity-95 backdrop-filter backdrop-blur-lg rounded-3xl shadow-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto modal-content"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
@@ -395,13 +467,35 @@ function FileUpload() {
                 </svg>
               </button>
             </div>
-            <p className="text-[#193722] text-xl mb-1">Servings: {selectedRecipe.servings}</p>
-            <p className="text-[#193722] text-xl mb-4">Ready in: {selectedRecipe.readyInMinutes} mins</p>
-            <h3 className="font-bold text-[#193722] text-2xl mb-2">Instructions:</h3>
-            <p className="text-[#193722] text-lg mb-4 whitespace-pre-line">
-              {selectedRecipe.instructions ? selectedRecipe.instructions.replace(/<[^>]*>/g, '') : 'No instructions available.'}
-            </p>
-            
+            <img src={selectedRecipe.image} alt={selectedRecipe.title} className="w-full h-48 object-cover rounded-lg mb-4" />
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-[#193722] bg-opacity-10 p-3 rounded-lg">
+                <p className="text-[#193722] text-lg font-semibold">Servings</p>
+                <p className="text-[#193722] text-xl">{selectedRecipe.servings}</p>
+              </div>
+              <div className="bg-[#193722] bg-opacity-10 p-3 rounded-lg">
+                <p className="text-[#193722] text-lg font-semibold">Cooking Time</p>
+                <p className="text-[#193722] text-xl">{selectedRecipe.readyInMinutes} mins</p>
+              </div>
+            </div>
+            <div className="mb-6">
+              <h3 className="font-bold text-[#193722] text-xl mb-2">Ingredients:</h3>
+              {selectedRecipe.extendedIngredients && selectedRecipe.extendedIngredients.length > 0 ? (
+                <ul className="list-disc pl-5">
+                  {selectedRecipe.extendedIngredients.map((ingredient, index) => (
+                    <li key={index} className="text-[#193722] text-lg mb-1">{ingredient.original}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[#193722] text-lg">Ingredients information not available.</p>
+              )}
+            </div>
+            <div className="mb-6">
+              <h3 className="font-bold text-[#193722] text-xl mb-2">Instructions:</h3>
+              <p className="text-[#193722] text-lg whitespace-pre-line">
+                {selectedRecipe.instructions ? selectedRecipe.instructions.replace(/<[^>]*>/g, '') : 'No instructions available.'}
+              </p>
+            </div>
             <a
               href={selectedRecipe.sourceUrl}
               target="_blank"
@@ -414,7 +508,7 @@ function FileUpload() {
         </div>
       )}
       {savedRecipeId !== null && (
-        <div className="fixed top-0 left-0 right-0 flex justify-center items-center p-4 z-50">
+        <div className="fixed top-0 left-0 right-0 flex justify-center items-center p-4 notification">
           <div className="bg-[#193722] text-white px-4 py-2 rounded-full flex items-center">
             <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
