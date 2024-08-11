@@ -9,6 +9,7 @@ type RecipeDetails = {
   image: string;
   instructions: string;
   sourceUrl: string;
+  extendedIngredients: Array<{ original: string }>;
 };
 
 export default async function getRecipeDetails(req: NextApiRequest, res: NextApiResponse) {
@@ -22,7 +23,7 @@ export default async function getRecipeDetails(req: NextApiRequest, res: NextApi
     const response = await axios.get<RecipeDetails>(`https://api.spoonacular.com/recipes/${recipeId}/information`, {
       params: {
         apiKey: process.env.SPOONACULAR_API_KEY,
-        includeNutrition: false, // We don't need nutritional information
+        includeNutrition: false, 
       }
     });
 
@@ -34,7 +35,8 @@ export default async function getRecipeDetails(req: NextApiRequest, res: NextApi
       readyInMinutes,
       image,
       instructions,
-      sourceUrl
+      sourceUrl,
+      extendedIngredients
     } = response.data;
 
     // Return the extracted data
@@ -45,7 +47,8 @@ export default async function getRecipeDetails(req: NextApiRequest, res: NextApi
       readyInMinutes,
       image,
       instructions,
-      sourceUrl
+      sourceUrl,
+      extendedIngredients
     });
   } catch (error) {
     console.error('Error fetching recipe details:', error);

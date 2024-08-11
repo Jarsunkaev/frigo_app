@@ -20,6 +20,7 @@
     },
     "types": ["@types/eslint", "@types/eslint-scope", "@types/estree", "@types/json-schema"]
   },
-  "include": ["next-env.d.ts", "src/**/*"],
+
+  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules"]
 }
