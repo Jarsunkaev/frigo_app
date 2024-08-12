@@ -5,17 +5,11 @@
 This is a web application that recommends recipes based on the ingredients available in the user's fridge or pantry. Users can take a picture of their fridge/pantry and upload it to the app. The app uses image recognition to identify the ingredients and then generates recipe suggestions using the Spoonacular API.
 
 **Technologies Used**
-- React: JavaScript library for building user interfaces
-- Next.js: React framework for server-side rendering and routing
-- Node.js: JavaScript runtime environment
-- Express.js: Web application framework for Node.js
-- PostgreSQL: Relational database for storing recipe and user data
+- Next.js
+- Node.js
+- Firebase and Firestore
 - Spoonacular API: API for retrieving recipes and ingredient information
-- Features
-- Image recognition: Utilizes image recognition technology to identify ingredients from user-uploaded images.
-- Recipe generation: Uses the identified ingredients to generate recipe suggestions using the Spoonacular API.
-- User authentication: Allows users to create accounts, log in, and save their favorite recipes.
-- Database storage: Stores user data, including saved recipes, in a PostgreSQL database.
+- AWS Rekognition: Ingredient recognition
 
 
 # Getting Started
