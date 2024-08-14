@@ -1,14 +1,19 @@
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
-import { auth, googleProvider } from "./api/firebase.js";
+import React, { useState, useEffect } from "react";
+import { auth } from "./api/firebase.js";
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
+import { handleGoogleAuth, handleRedirectResult } from "../utils/auth-utils";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    handleRedirectResult(router);
+  }, [router]);
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
@@ -19,17 +24,6 @@ const Login = () => {
     } catch (error) {
       console.error("Login error:", error);
       alert(`Login error: ${error.message}`);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log("Successful Google sign-in", result.user);
-      router.push("/generate");
-    } catch (error) {
-      console.error("Google login error:", error);
-      alert(`Google login error: ${error.message}`);
     }
   };
 
@@ -90,7 +84,7 @@ const Login = () => {
             </div>
           </div>
           <button
-            onClick={handleGoogleLogin}
+            onClick={() => handleGoogleAuth(router)}
             className="w-full py-2 bg-white text-gray-700 font-bold rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center justify-center"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
