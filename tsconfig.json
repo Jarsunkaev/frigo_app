@@ -18,9 +18,8 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["@types/eslint", "@types/eslint-scope", "@types/estree", "@types/json-schema"]
+    "types": []
   },
-
-  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx"],
+  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "*.ts", "*.tsx", "*.js", "*.jsx"],
   "exclude": ["node_modules"]
 }
