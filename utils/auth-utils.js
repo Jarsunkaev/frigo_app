@@ -1,36 +1,22 @@
-import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from "firebase/auth";
-import { auth, googleProvider } from "../pages/api/firebase";
+import { signInWithPopup, signInWithRedirect } from "firebase/auth";
+import { auth, googleProvider } from "../pages/api/firebase.js";
 
 export const isMobile = () => {
-  const userAgent = typeof window.navigator === "undefined" ? "" : navigator.userAgent;
-  const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-  return mobileRegex.test(userAgent);
+  if (typeof window !== "undefined") {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+  return false;
 };
 
-export const handleGoogleAuth = async (router) => {
+export const handleGoogleAuth = async () => {
   try {
     if (isMobile()) {
-      await signInWithRedirect(auth, googleProvider);
+      await signInWithPopup(auth, googleProvider); // Use signInWithPopup() for mobile
     } else {
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log("Successful Google auth", result.user);
-      router.push("/generate");
+      await signInWithRedirect(auth, googleProvider);
     }
   } catch (error) {
     console.error("Google auth error:", error);
-    alert(`Google auth error: ${error.message}`);
-  }
-};
-
-export const handleRedirectResult = async (router) => {
-  try {
-    const result = await getRedirectResult(auth);
-    if (result) {
-      console.log("Successful Google auth after redirect", result.user);
-      router.push("/generate");
-    }
-  } catch (error) {
-    console.error("Error handling redirect result:", error);
-    alert(`Authentication error: ${error.message}`);
+    throw error;
   }
 };
