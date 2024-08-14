@@ -1,39 +1,131 @@
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
-import { auth } from "./api/firebase.js";
+import { signInWithEmailAndPassword, onAuthStateChanged, getRedirectResult } from "firebase/auth";
+import { useRouter } from "next/router";
+import { auth } from "../pages/api/firebase.js";
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
-import { handleGoogleAuth, handleRedirectResult } from "../utils/auth-utils";
+import { handleGoogleAuth } from "../utils/auth-utils";
 
-const Login = () => {
+const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    handleRedirectResult(router);
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user) {
+          console.log("User signed in after redirect:", result.user);
+          router.push("/generate");
+        }
+      } catch (error) {
+        console.error("Error handling redirect result:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    handleRedirectResult();
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User is signed in:", user);
+        router.push("/generate");
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
   }, [router]);
 
-  const handleEmailLogin = async (e) => {
+  const handleEmailSignIn = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      console.log("Successful email sign-in", result.user);
-      router.push("/generate");
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log("Successful email sign-in");
     } catch (error) {
-      console.error("Login error:", error);
-      alert(`Login error: ${error.message}`);
+      console.error("Sign-in error:", error);
+      alert(`Sign-in error: ${error.message}`);
+      setIsLoading(false);
     }
   };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      await handleGoogleAuth();
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      alert(`Google sign-in error: ${error.message}`);
+      setIsLoading(false);
+    }
+  };
+
+  const Spinner = () => (
+    <div className="flex justify-center items-center mt-4">
+      <svg className="w-16 h-16" viewBox="0 0 50 50">
+        <circle
+          cx="25"
+          cy="25"
+          r="20"
+          fill="none"
+          stroke="#e6f4ea"
+          strokeWidth="4"
+        />
+        <circle
+          cx="25"
+          cy="25"
+          r="20"
+          fill="none"
+          stroke="#193722"
+          strokeWidth="4"
+          strokeDasharray="31.4 31.4"
+          strokeLinecap="round"
+          transform="rotate(-90 25 25)"
+        >
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="0 25 25"
+            to="360 25 25"
+            dur="1s"
+            repeatCount="indefinite"
+          />
+        </circle>
+        <path
+          d="M25 15 L25 20 M25 30 L25 35 M15 25 L20 25 M30 25 L35 25"
+          stroke="#193722"
+          strokeWidth="4"
+          strokeLinecap="round"
+        >
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="0 25 25"
+            to="360 25 25"
+            dur="6s"
+            repeatCount="indefinite"
+          />
+        </path>
+      </svg>
+    </div>
+  );
+
+  if (isLoading) {
+    return <div><Spinner /></div>;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-[#fcf9ed]">
       <Header />
       <div className="flex-grow flex items-center justify-center px-4">
         <div className="w-full max-w-md p-6 bg-white bg-opacity-40 backdrop-filter backdrop-blur-md rounded-3xl shadow-lg border-2 border-[#193722]">
-          <h1 className="text-2xl font-bold text-center mb-6 text-[#193722]">Login</h1>
-          <form onSubmit={handleEmailLogin}>
+          <h1 className="text-2xl font-bold text-center mb-6 text-[#193722]">Sign In</h1>
+          <form onSubmit={handleEmailSignIn}>
             <div className="mb-4">
               <label
                 htmlFor="email"
@@ -72,7 +164,7 @@ const Login = () => {
               type="submit"
               className="w-full py-2 mb-4 bg-transparent text-[#193722] font-bold rounded-lg border-2 border-[#193722] hover:bg-[#193722] hover:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#193722]"
             >
-              Login with Email
+              Sign In with Email
             </button>
           </form>
           <div className="relative py-4">
@@ -84,7 +176,7 @@ const Login = () => {
             </div>
           </div>
           <button
-            onClick={() => handleGoogleAuth(router)}
+            onClick={handleGoogleSignIn}
             className="w-full py-2 bg-white text-gray-700 font-bold rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center justify-center"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -102,4 +194,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignIn;

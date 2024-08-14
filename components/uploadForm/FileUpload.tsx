@@ -24,7 +24,7 @@ type RecipeDetails = {
 };
 
 const Spinner = () => (
-  <div className="flex justify-center items-center mt-4">
+  <div className="flex justify-center items-center mt-4 align-middle">
     <svg className="w-16 h-16" viewBox="0 0 50 50">
       <circle
         cx="25"
