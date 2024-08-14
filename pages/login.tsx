@@ -1,7 +1,7 @@
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
-import { auth } from "./api/firebase.js";
+import { auth, googleProvider } from "./api/firebase.js";
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
 
@@ -13,31 +13,32 @@ const Login = () => {
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/");
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Successful email sign-in", result.user);
+      router.push("/generate");
     } catch (error) {
       console.error("Login error:", error);
-      alert(error.message);
+      alert(`Login error: ${error.message}`);
     }
   };
 
   const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      router.push("/");
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log("Successful Google sign-in", result.user);
+      router.push("/generate");
     } catch (error) {
       console.error("Google login error:", error);
-      alert(error.message);
+      alert(`Google login error: ${error.message}`);
     }
   };
 
   return (
     <div className="flex min-h-screen flex-col bg-[#fcf9ed]">
       <Header />
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="w-full max-w-md p-8 bg-white bg-opacity-40 backdrop-filter backdrop-blur-md rounded-3xl shadow-lg border-2 border-[#193722] ml-2 mr-2">
-          <h1 className="text-2xl font-bold text-center mb-8 text-[#193722]">Login</h1>
+      <div className="flex-grow flex items-center justify-center px-4">
+        <div className="w-full max-w-md p-6 bg-white bg-opacity-40 backdrop-filter backdrop-blur-md rounded-3xl shadow-lg border-2 border-[#193722]">
+          <h1 className="text-2xl font-bold text-center mb-6 text-[#193722]">Login</h1>
           <form onSubmit={handleEmailLogin}>
             <div className="mb-4">
               <label
@@ -53,6 +54,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-[#193722] focus:outline-none focus:ring-1 focus:ring-[#193722]"
                 required
+                autoComplete="email"
               />
             </div>
             <div className="mb-6">
@@ -69,6 +71,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-[#193722] focus:outline-none focus:ring-1 focus:ring-[#193722]"
                 required
+                autoComplete="current-password"
               />
             </div>
             <button
