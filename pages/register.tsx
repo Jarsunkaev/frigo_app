@@ -57,8 +57,58 @@ const SignUp = () => {
     }
   };
 
+  const Spinner = () => (
+    <div className="flex justify-center items-center mt-4 align-middle">
+      <svg className="w-16 h-16" viewBox="0 0 50 50">
+        <circle
+          cx="25"
+          cy="25"
+          r="20"
+          fill="none"
+          stroke="#e6f4ea"
+          strokeWidth="4"
+        />
+        <circle
+          cx="25"
+          cy="25"
+          r="20"
+          fill="none"
+          stroke="#193722"
+          strokeWidth="4"
+          strokeDasharray="31.4 31.4"
+          strokeLinecap="round"
+          transform="rotate(-90 25 25)"
+        >
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="0 25 25"
+            to="360 25 25"
+            dur="1s"
+            repeatCount="indefinite"
+          />
+        </circle>
+        <path
+          d="M25 15 L25 20 M25 30 L25 35 M15 25 L20 25 M30 25 L35 25"
+          stroke="#193722"
+          strokeWidth="4"
+          strokeLinecap="round"
+        >
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="0 25 25"
+            to="360 25 25"
+            dur="6s"
+            repeatCount="indefinite"
+          />
+        </path>
+      </svg>
+    </div>
+  );
+
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div><Spinner /></div>;
   }
 
   return (
