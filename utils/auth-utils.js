@@ -1,22 +1,39 @@
-import { signInWithPopup, signInWithRedirect } from "firebase/auth";
-import { auth, googleProvider } from "../pages/api/firebase.js";
+import { signInWithPopup, GoogleAuthProvider, getAuth } from "firebase/auth";
+import { auth as firebaseAuth } from "../pages/api/firebase";
 
-export const isMobile = () => {
-  if (typeof window !== "undefined") {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  }
-  return false;
-};
+const auth = getAuth();
+const googleProvider = new GoogleAuthProvider();
 
 export const handleGoogleAuth = async () => {
+  console.log("Starting Google auth...");
   try {
-    if (isMobile()) {
-      await signInWithPopup(auth, googleProvider); // Use signInWithPopup() for mobile
-    } else {
-      await signInWithRedirect(auth, googleProvider);
-    }
+    const result = await signInWithPopup(auth, googleProvider);
+    console.log("Google auth completed successfully", result.user);
+    return result.user;
   } catch (error) {
     console.error("Google auth error:", error);
+    if (error.code === 'auth/popup-closed-by-user') {
+      console.log("User closed the popup");
+    } else if (error.code === 'auth/popup-blocked') {
+      console.log("Popup was blocked by the browser");
+    }
+    throw error;
+  }
+};
+
+export const checkAuthState = (callback) => {
+  return auth.onAuthStateChanged((user) => {
+    console.log("Auth state changed", user ? "User logged in" : "User logged out");
+    callback(user);
+  });
+};
+
+export const signOut = async () => {
+  try {
+    await auth.signOut();
+    console.log("User signed out successfully");
+  } catch (error) {
+    console.error("Sign out error:", error);
     throw error;
   }
 };
