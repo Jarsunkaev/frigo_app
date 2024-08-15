@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../../pages/api/firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { Heart } from 'lucide-react';
 import axios from "axios";
 
 type Recipe = {
@@ -455,11 +456,14 @@ function FileUpload() {
                           View Recipe
                         </button>
                         <button
-                          className="elegant-button flex-1 ml-2"
-                          onClick={() => handleSaveRecipe(recipe)}
-                        >
-                          Save Recipe
-                        </button>
+                            className="elegant-button flex justify-center items-center flex-1 ml-2"
+                            onClick={() => handleSaveRecipe(recipe)}
+                          >
+                            <Heart
+                              fill={savedRecipeId === recipe.id ? "red" : "none"}
+                              stroke={savedRecipeId === recipe.id ? "red" : "#193722"}
+                            />
+                          </button>
                       </div>
                     </div>
                   </div>
