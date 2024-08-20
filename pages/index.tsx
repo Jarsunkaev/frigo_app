@@ -13,7 +13,7 @@ const PlanCard = ({ title, price, features, isPopular }) => (
         </li>
       ))}
     </ul>
-    <button className={`mt-6 py-2 px-4 rounded-full font-bold ${isPopular ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
+    <button className={`mt-6 py-2 px-4 rounded-full font-bold ${isPopular ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-amber-500 hover:text-white transition duration-200`}>
       Choose Plan
     </button>
   </div>
