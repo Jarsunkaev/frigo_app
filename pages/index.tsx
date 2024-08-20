@@ -73,7 +73,7 @@ const LandingPage = () => {
       <header className="bg-white bg-opacity-80 backdrop-filter backdrop-blur-lg fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-4 py-6 flex justify-between items-center">
           <div className="flex items-center">
-            <a href="/" className="text-3xl font-bold text-[#193722] mr-2">Frigo</a>
+            <a href="/" className="text-3xl font-bold text-[#193722] mr-2">FRIGO</a>
             <img src="favicon.ico" className="h-8 w-8" alt="logo" />
           </div>
           <nav className="hidden md:flex space-x-6">
