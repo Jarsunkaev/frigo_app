@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Camera, ChefHat, Check, Menu, X } from 'lucide-react';
 
 const PlanCard = ({ title, price, features, isPopular }) => (
-  <div className={`bg-white rounded-xl shadow-lg p-6 flex flex-col ${isPopular ? 'border-2 border-amber-500' : ''}`}>
+  <div className={`bg-white rounded-xl shadow-lg p-6 flex flex-col ${isPopular ? 'border-2 border-amber-500' : ''} hover:border-2 border-amber-500 hover:shadow-lg transition duration-500`}>
     <h3 className="text-2xl font-bold mb-4">{title}</h3>
     <p className="text-4xl font-bold mb-6">{price}</p>
     <ul className="flex-grow">
@@ -159,17 +159,16 @@ const LandingPage = () => {
                 features={[
                   "2 recipe generations per day",
                   "Basic ingredient recognition",
-                  "Standard recipe suggestions"
+                  "6 recipe suggestions"
                 ]}
               />
               <PlanCard
                 title="Premium"
-                price="$5/month"
+                price="$2/month"
                 features={[
                   "15 recipe generations per day",
                   "Advanced ingredient recognition",
-                  "Personalized recipe suggestions",
-                  "Exclusive recipes"
+                  "12 recipe suggestions"
                 ]}
                 isPopular={true}
               />
