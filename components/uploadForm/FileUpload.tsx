@@ -396,7 +396,7 @@ function FileUpload() {
           border: 2px dashed rgba(25, 55, 34, 0.5);
           border-radius: 14px;
           transition: all 0.3s ease;
-          height: 300px;
+          height: 250px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -414,12 +414,13 @@ function FileUpload() {
           align-items: center;
           justify-content: center;
           text-align: center;
+          border-radius: 14px;
         }
 
         .uploaded-image {
           max-width: 100%;
           max-height: 100%;
-          object-fit: contain;
+          object-fit: scale-down;
         }
 
         .generate-button {
