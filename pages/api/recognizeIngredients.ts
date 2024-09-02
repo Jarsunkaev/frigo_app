@@ -21,7 +21,6 @@ interface UploadedFiles {
   }[];
 }
 
-// Function to clean up ingredient strings
 function cleanIngredient(ingredient: string): string {
   // Remove bullet points, numbers, and leading/trailing whitespace
   return ingredient.replace(/^[\s\-•]*([\d]+\.)?/, '').trim();
@@ -52,7 +51,6 @@ export default async function recognizeIngredients(req: NextReq, res: NextApiRes
     return res.status(400).json({ error: 'Image not correctly provided.' });
   }
 
-  // Read the image file as a buffer
   const imageBuffer = fs.readFileSync(imageFile.filepath);
   
   // Convert the image buffer to a base64 string
