@@ -74,12 +74,77 @@ const Spinner = () => (
   </div>
 );
 
+const Autocomplete: React.FC<{ onSelect: (ingredient: string) => void }> = ({ onSelect }) => {
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [inputValue, setInputValue] = useState<string>('');
+
+  useEffect(() => {
+    if (inputValue) {
+      const fetchSuggestions = async () => {
+        try {
+          const response = await axios.get(`https://api.spoonacular.com/food/ingredients/autocomplete`, {
+            params: {
+              query: inputValue,
+              number: 5,
+              apiKey: process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY,
+            },
+          });
+          setSuggestions(response.data.map((item: { name: string }) => item.name));
+        } catch (error) {
+          console.error('Error fetching suggestions:', error);
+        }
+      };
+
+      fetchSuggestions();
+    } else {
+      setSuggestions([]);
+    }
+  }, [inputValue]);
+
+  const handleSelect = (suggestion: string) => {
+    onSelect(suggestion);
+    setInputValue('');
+    setSuggestions([]);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && suggestions.length > 0) {
+      handleSelect(suggestions[0]);
+    }
+  };
+
+  return (
+    <div className="relative flex-grow">
+      <input
+        type="text"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Add new ingredient"
+        className="w-full px-4 py-2 border-2 border-r-0 border-[#193722] rounded-l-lg text-[#193722] bg-white bg-opacity-50"
+      />
+      {suggestions.length > 0 && (
+        <ul className="absolute z-10 w-full bg-white border border-[#193722] mt-1 rounded-lg shadow-lg">
+          {suggestions.map((suggestion, index) => (
+            <li
+              key={index}
+              onClick={() => handleSelect(suggestion)}
+              className="cursor-pointer p-2 hover:bg-gray-200 text-[#193722]"
+            >
+              {suggestion}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
 function FileUpload() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [identifiedIngredients, setIdentifiedIngredients] = useState<string[]>([]);
-  const [newIngredient, setNewIngredient] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeDetails | null>(null);
   const [randomFact, setRandomFact] = useState<string>("");
@@ -168,10 +233,9 @@ function FileUpload() {
     setIdentifiedIngredients(identifiedIngredients.filter(item => item !== ingredient));
   };
 
-  const handleAddIngredient = () => {
-    if (newIngredient.trim() !== '') {
-      setIdentifiedIngredients([...identifiedIngredients, newIngredient.trim()]);
-      setNewIngredient('');
+  const handleAddIngredient = (ingredient: string) => {
+    if (ingredient.trim() !== '') {
+      setIdentifiedIngredients([...identifiedIngredients, ingredient.trim()]);
     }
   };
 
@@ -330,12 +394,32 @@ function FileUpload() {
           background: rgba(25, 55, 34, 0.1);
           backdrop-filter: blur(8px);
           border: 2px dashed rgba(25, 55, 34, 0.5);
+          border-radius: 14px;
           transition: all 0.3s ease;
+          height: 300px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
         }
 
         .drag-drop-zone:hover, .drag-drop-zone.active {
           background: rgba(25, 55, 34, 0.2);
           border-color: rgba(25, 55, 34, 0.8);
+        }
+
+        .drag-drop-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+        }
+
+        .uploaded-image {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
         }
 
         .generate-button {
@@ -358,7 +442,7 @@ function FileUpload() {
         }
 
         .content-wrapper {
-          padding-top: 6rem; /* Increased top padding for mobile */
+          padding-top: 6rem;
           min-height: 100vh;
           display: flex;
           justify-content: center;
@@ -367,16 +451,14 @@ function FileUpload() {
 
         @media (min-width: 640px) {
           .content-wrapper {
-            padding-top: 8rem; /* Increased top padding for larger screens */
+            padding-top: 8rem;
           }
         }
-
-        .recipe-generator {
-          margin-top: 2rem; /* Added margin to separate from header */
+          .recipe-generator {
+          margin-top: 2rem;
           width: 100%;
           max-width: 2xl;
         }
-
         .heart-button {
           background: transparent;
           border: none;
@@ -387,26 +469,28 @@ function FileUpload() {
           justify-content: center;
         }
       `}</style>
-      <div className="flex justify-start items-start min-h-screen p-4 mt-20 bg-[#fcf9ed] content-wrapper">
+      <div className="flex justify-start items-start min-h-screen p-4 mt-2 mb-20 bg-[#fcf9ed] content-wrapper">
         <div className="bg-white bg-opacity-40 backdrop-filter backdrop-blur-md p-6 rounded-3xl shadow-lg w-full max-w-2xl border-2 border-[#193722] recipe-generator">
           <h2 className="text-2xl font-bold mb-4 text-[#193722]">Recipe Generator</h2>
           <p className="text-[#193722] mb-4">{randomFact}</p>
 
           <div
             {...getRootProps()}
-            className={`flex items-center justify-center rounded-lg p-8 drag-drop-zone ${
-              isDragActive ? 'active' : ''
-            } mb-6 cursor-pointer`}
+            className={`drag-drop-zone ${isDragActive ? 'active' : ''} mb-6 cursor-pointer`}
           >
             <input {...getInputProps()} className="hidden" />
-            {imageSrc ? (
-              <img src={imageSrc} alt="Uploaded" className="w-full h-full object-contain" />
-            ) : (
-              <p className="text-[#193722] text-center">
-                <span className="block text-3xl mb-2"></span>
-                Drag 'n' drop an image here,<br />or click to select one
-              </p>
-            )}
+            <div className="drag-drop-content">
+              {imageSrc ? (
+                <img src={imageSrc} alt="Uploaded" className="uploaded-image" />
+              ) : (
+                <>
+                  <span className="block text-3xl mb-2"></span>
+                  <p className="text-[#193722]">
+                    Drag 'n' drop an image here,<br />or click to select one
+                  </p>
+                </>
+              )}
+            </div>
           </div>
 
           {isLoading && <Spinner />}
@@ -430,131 +514,125 @@ function FileUpload() {
 
           <div className="mt-4 mb-8">
             <div className="flex">
-              <input
-              type="text"
-              value={newIngredient}
-              onChange={(e) => setNewIngredient(e.target.value)}
-              placeholder="Add new ingredient"
-              className="flex-grow px-4 py-2 border-2 border-r-0 border-[#193722] rounded-l-lg text-[#193722] bg-white bg-opacity-50"
-            />
-            <button onClick={handleAddIngredient} className="add-ingredient-button">
-              Add
-            </button>
+              <Autocomplete onSelect={handleAddIngredient} />
+              <button onClick={() => handleAddIngredient('')} className="add-ingredient-button">
+                Add
+              </button>
+            </div>
           </div>
-        </div>
 
-        <button onClick={handleGenerateRecipes} className="generate-button">
-          Generate Recipes
-        </button>
+          <button onClick={handleGenerateRecipes} className="generate-button">
+            Generate Recipes
+          </button>
 
-        {recipes.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-2xl font-bold mb-4 text-[#193722]">Recipes:</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {recipes.map((recipe) => (
-                <div key={recipe.id} className="recipe-card overflow-hidden">
-                  <div className="p-4 flex flex-col h-full">
-                    <h4 className="font-bold mb-2 text-[#193722]">{recipe.title}</h4>
-                    <div className="recipe-image-container mb-4">
-                      <img src={recipe.image} alt={recipe.title} className="recipe-image rounded-lg" />
-                    </div>
-                    <div className="flex justify-between mt-auto">
-                      <button
-                        className="elegant-button flex-2 mr-2"
-                        onClick={() => handleRecipeClick(recipe.id)}
-                      >
-                        View Recipe
-                      </button>
-                      <button
-                        className="heart-button flex-1"
-                        onClick={() => handleSaveRecipe(recipe)}
-                        aria-label={savedRecipeId === recipe.id ? "Unsave recipe" : "Save recipe"}
-                      >
-                        <Heart
-                          fill={savedRecipeId === recipe.id ? "#ff0000" : "none"}
-                          stroke={savedRecipeId === recipe.id ? "#ff0000" : "#193722"}
-                          size={30}
-                        />
-                      </button>
+          {recipes.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-2xl font-bold mb-4 text-[#193722]">Recipes:</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {recipes.map((recipe) => (
+                  <div key={recipe.id} className="recipe-card overflow-hidden">
+                    <div className="p-4 flex flex-col h-full">
+                      <h4 className="font-bold mb-2 text-[#193722]">{recipe.title}</h4>
+                      <div className="recipe-image-container mb-4">
+                        <img src={recipe.image} alt={recipe.title} className="recipe-image rounded-lg" />
+                      </div>
+                      <div className="flex justify-between mt-auto">
+                        <button
+                          className="elegant-button flex-2 mr-2"
+                          onClick={() => handleRecipeClick(recipe.id)}
+                        >
+                          View Recipe
+                        </button>
+                        <button
+                          className="heart-button flex-1"
+                          onClick={() => handleSaveRecipe(recipe)}
+                          aria-label={savedRecipeId === recipe.id ? "Unsave recipe" : "Save recipe"}
+                        >
+                          <Heart
+                            fill={savedRecipeId === recipe.id ? "#ff0000" : "none"}
+                            stroke={savedRecipeId === recipe.id ? "#ff0000" : "#193722"}
+                            size={30}
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-
-    {selectedRecipe && (
-      <div className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50 modal-overlay" onClick={() => setSelectedRecipe(null)}>
-        <div 
-          className="bg-white bg-opacity-95 backdrop-filter backdrop-blur-lg rounded-3xl shadow-lg p-6 max-w-2xl w-full max-h-[85vh] overflow-y-auto modal-content"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-[#193722]">{selectedRecipe.title}</h2>
-            <button 
-              onClick={() => setSelectedRecipe(null)}
-              className="text-[#193722] hover:text-red-600 transition-colors duration-300"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <img src={selectedRecipe.image} alt={selectedRecipe.title} className="w-full h-48 object-cover rounded-lg mb-4" />
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="bg-[#193722] bg-opacity-10 p-3 rounded-lg">
-              <p className="text-[#193722] text-lg font-semibold">Servings</p>
-              <p className="text-[#193722] text-xl">{selectedRecipe.servings}</p>
-            </div>
-            <div className="bg-[#193722] bg-opacity-10 p-3 rounded-lg">
-              <p className="text-[#193722] text-lg font-semibold">Cooking Time</p>
-              <p className="text-[#193722] text-xl">{selectedRecipe.readyInMinutes} mins</p>
-            </div>
-          </div>
-          <div className="mb-6">
-            <h3 className="font-bold text-[#193722] text-xl mb-2">Ingredients:</h3>
-            {selectedRecipe.extendedIngredients && selectedRecipe.extendedIngredients.length > 0 ? (
-              <ul className="list-disc pl-5">
-                {selectedRecipe.extendedIngredients.map((ingredient, index) => (
-                  <li key={index} className="text-[#193722] text-lg mb-1">{ingredient.original}</li>
                 ))}
-              </ul>
-            ) : (
-              <p className="text-[#193722] text-lg">Ingredients information not available.</p>
-            )}
-          </div>
-          <div className="mb-6">
-            <h3 className="font-bold text-[#193722] text-xl mb-2">Instructions:</h3>
-            <p className="text-[#193722] text-lg whitespace-pre-line">
-              {selectedRecipe.instructions ? selectedRecipe.instructions.replace(/<[^>]*>/g, '') : 'No instructions available.'}
-            </p>
-          </div>
-          <a
-            href={selectedRecipe.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full py-2 bg-transparent text-[#193722] font-bold text-center rounded-lg border-2 border-[#193722] hover:bg-[#193722] hover:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#193722]" 
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {selectedRecipe && (
+        <div className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50 modal-overlay" onClick={() => setSelectedRecipe(null)}>
+          <div 
+            className="bg-white bg-opacity-95 backdrop-filter backdrop-blur-lg rounded-3xl shadow-lg p-6 max-w-2xl w-full max-h-[85vh] overflow-y-auto modal-content"
+            onClick={(e) => e.stopPropagation()}
           >
-            Go to Recipe
-          </a>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-[#193722]">{selectedRecipe.title}</h2>
+              <button 
+                onClick={() => setSelectedRecipe(null)}
+                className="text-[#193722] hover:text-red-600 transition-colors duration-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <img src={selectedRecipe.image} alt={selectedRecipe.title} className="w-full h-48 object-cover rounded-lg mb-4" />
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-[#193722] bg-opacity-10 p-3 rounded-lg">
+                <p className="text-[#193722] text-lg font-semibold">Servings</p>
+                <p className="text-[#193722] text-xl">{selectedRecipe.servings}</p>
+              </div>
+              <div className="bg-[#193722] bg-opacity-10 p-3 rounded-lg">
+                <p className="text-[#193722] text-lg font-semibold">Cooking Time</p>
+                <p className="text-[#193722] text-xl">{selectedRecipe.readyInMinutes} mins</p>
+              </div>
+            </div>
+            <div className="mb-6">
+              <h3 className="font-bold text-[#193722] text-xl mb-2">Ingredients:</h3>
+              {selectedRecipe.extendedIngredients && selectedRecipe.extendedIngredients.length > 0 ? (
+                <ul className="list-disc pl-5">
+                  {selectedRecipe.extendedIngredients.map((ingredient, index) => (
+                    <li key={index} className="text-[#193722] text-lg mb-1">{ingredient.original}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[#193722] text-lg">Ingredients information not available.</p>
+              )}
+            </div>
+            <div className="mb-6">
+              <h3 className="font-bold text-[#193722] text-xl mb-2">Instructions:</h3>
+              <p className="text-[#193722] text-lg whitespace-pre-line">
+                {selectedRecipe.instructions ? selectedRecipe.instructions.replace(/<[^>]*>/g, '') : 'No instructions available.'}
+              </p>
+            </div>
+            <a
+              href={selectedRecipe.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full py-2 bg-transparent text-[#193722] font-bold text-center rounded-lg border-2 border-[#193722] hover:bg-[#193722] hover:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#193722]" 
+            >
+              Go to Recipe
+            </a>
+          </div>
         </div>
-      </div>
-    )}
-    {savedRecipeId !== null && (
-      <div className="fixed top-0 left-0 right-0 flex justify-center items-center p-4 notification">
-        <div className="bg-[#193722] text-white px-4 py-2 rounded-full flex items-center">
-          <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          Recipe Saved!
+      )}
+      {savedRecipeId !== null && (
+        <div className="fixed top-0 left-0 right-0 flex justify-center items-center p-4 notification">
+          <div className="bg-[#193722] text-white px-4 py-2 rounded-full flex items-center">
+            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Recipe Saved!
+          </div>
         </div>
-      </div>
-    )}
-  </>
-);
+      )}
+    </>
+  );
 }
 
 export default FileUpload;
