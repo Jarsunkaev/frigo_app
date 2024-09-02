@@ -150,6 +150,7 @@ function FileUpload() {
   const [randomFact, setRandomFact] = useState<string>("");
   const [user] = useAuthState(auth);
   const [savedRecipeId, setSavedRecipeId] = useState<number | null>(null);
+  const [newIngredient, setNewIngredient] = useState<string>('');
 
   useEffect(() => {
     async function fetchRandomFact() {
@@ -198,7 +199,11 @@ function FileUpload() {
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    onDrop,
+    accept: {'image/*': []},
+    multiple: false
+  });
 
   const handleRecipeClick = async (recipeId: number) => {
     try {
@@ -233,9 +238,10 @@ function FileUpload() {
     setIdentifiedIngredients(identifiedIngredients.filter(item => item !== ingredient));
   };
 
-  const handleAddIngredient = (ingredient: string) => {
-    if (ingredient.trim() !== '') {
-      setIdentifiedIngredients([...identifiedIngredients, ingredient.trim()]);
+  const handleAddIngredient = () => {
+    if (newIngredient.trim() !== '') {
+      setIdentifiedIngredients(prevIngredients => [...prevIngredients, newIngredient.trim()]);
+      setNewIngredient('');
     }
   };
 
@@ -479,7 +485,7 @@ function FileUpload() {
             {...getRootProps()}
             className={`drag-drop-zone ${isDragActive ? 'active' : ''} mb-6 cursor-pointer`}
           >
-            <input {...getInputProps()} className="hidden" />
+            <input {...getInputProps()} />
             <div className="drag-drop-content">
               {imageSrc ? (
                 <img src={imageSrc} alt="Uploaded" className="uploaded-image" />
@@ -487,7 +493,7 @@ function FileUpload() {
                 <>
                   <span className="block text-3xl mb-2"></span>
                   <p className="text-[#193722]">
-                    Drag 'n' drop an image here,<br />or click to select one
+                    Upload or take a picture of your ingredients
                   </p>
                 </>
               )}
@@ -515,8 +521,14 @@ function FileUpload() {
 
           <div className="mt-4 mb-8">
             <div className="flex">
-              <Autocomplete onSelect={handleAddIngredient} />
-              <button onClick={() => handleAddIngredient('')} className="add-ingredient-button">
+              <input
+                type="text"
+                value={newIngredient}
+                onChange={(e) => setNewIngredient(e.target.value)}
+                placeholder="Add new ingredient"
+                className="w-full px-4 py-2 border-2 border-r-0 border-[#193722] rounded-l-lg text-[#193722] bg-white bg-opacity-50"
+              />
+              <button onClick={handleAddIngredient} className="add-ingredient-button">
                 Add
               </button>
             </div>
@@ -525,6 +537,7 @@ function FileUpload() {
           <button onClick={handleGenerateRecipes} className="generate-button">
             Generate Recipes
           </button>
+
 
           {recipes.length > 0 && (
             <div className="mt-8">
