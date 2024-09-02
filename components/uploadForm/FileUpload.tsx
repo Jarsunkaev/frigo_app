@@ -164,11 +164,7 @@ function FileUpload() {
     fetchRandomFact();
   }, []);
 
-  const onDrop = useCallback(async (acceptedFiles) => {
-    const image = acceptedFiles[0];
-    if (!image) {
-      return;
-    }
+  const processImage = async (image: File) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -184,20 +180,31 @@ function FileUpload() {
         ingredients: recognitionResult.data,
       });
       setRecipes(response.data);
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (reader.result) {
-          setImageSrc(reader.result as string);
-        }
-      };
-      reader.readAsDataURL(image);
     } catch (error) {
-      console.error("Failed to generate recipes:", error);
-      setError("Failed to generate recipes. Please try again.");
+      console.error("Failed to process image:", error);
+      setError("Failed to process image. Please try again.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const image = acceptedFiles[0];
+    if (!image) return;
+
+    // Immediately display the image
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setImageSrc(e.target.result as string);
+      }
+    };
+    reader.readAsDataURL(image);
+
+    // Process the image in the background
+    processImage(image);
   }, []);
+
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop,
