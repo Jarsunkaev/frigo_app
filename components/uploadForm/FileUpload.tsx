@@ -151,6 +151,8 @@ function FileUpload() {
   const [user] = useAuthState(auth);
   const [savedRecipeId, setSavedRecipeId] = useState<number | null>(null);
   const [newIngredient, setNewIngredient] = useState<string>('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
 
   useEffect(() => {
     async function fetchRandomFact() {
@@ -192,18 +194,23 @@ function FileUpload() {
     const image = acceptedFiles[0];
     if (!image) return;
 
-    // Immediately display the image
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        setImageSrc(e.target.result as string);
-      }
-    };
-    reader.readAsDataURL(image);
+    // Set the image file in state
+    setImageFile(image);
+
+    // Use URL.createObjectURL for immediate display
+    setImageSrc(URL.createObjectURL(image));
 
     // Process the image in the background
     processImage(image);
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (imageSrc) {
+        URL.revokeObjectURL(imageSrc);
+      }
+    };
+  }, [imageSrc]);
 
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
@@ -489,23 +496,32 @@ function FileUpload() {
           <p className="text-[#193722] mb-4">{randomFact}</p>
 
           <div
-            {...getRootProps()}
-            className={`drag-drop-zone ${isDragActive ? 'active' : ''} mb-6 cursor-pointer`}
-          >
-            <input {...getInputProps()} />
-            <div className="drag-drop-content">
-              {imageSrc ? (
-                <img src={imageSrc} alt="Uploaded" className="uploaded-image" />
-              ) : (
-                <>
-                  <span className="block text-3xl mb-2"></span>
-                  <p className="text-[#193722]">
-                    Upload or take a picture of your ingredients
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
+        {...getRootProps()}
+        className={`drag-drop-zone ${isDragActive ? 'active' : ''} mb-6 cursor-pointer`}
+      >
+        <input {...getInputProps()} />
+        <div className="drag-drop-content">
+          {imageSrc ? (
+            <img 
+              src={imageSrc} 
+              alt="Uploaded" 
+              className="uploaded-image" 
+              onLoad={() => {
+                if (imageFile) {
+                  URL.revokeObjectURL(imageSrc);
+                }
+              }}
+            />
+          ) : (
+            <>
+              <span className="block text-3xl mb-2"></span>
+              <p className="text-[#193722]">
+                Upload or take a picture of your ingredients
+              </p>
+            </>
+          )}
+        </div>
+      </div>
 
           {isLoading && <Spinner />}
           {error && <p className="text-center mt-4 text-red-600">{error}</p>}
