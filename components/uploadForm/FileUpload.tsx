@@ -152,6 +152,7 @@ function FileUpload() {
   const [savedRecipeId, setSavedRecipeId] = useState<number | null>(null);
   const [newIngredient, setNewIngredient] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [localImageUrl, setLocalImageUrl] = useState<string | any>(null);
 
 
   useEffect(() => {
@@ -194,24 +195,20 @@ function FileUpload() {
     const image = acceptedFiles[0];
     if (!image) return;
 
-    // Set the image file in state
     setImageFile(image);
-
-    // Use URL.createObjectURL for immediate display
-    setImageSrc(URL.createObjectURL(image));
-
-    // Process the image in the background
+    const localUrl = URL.createObjectURL(image);
+    setLocalImageUrl(localUrl);
+    setImageSrc(null);
     processImage(image);
   }, []);
 
   useEffect(() => {
     return () => {
-      if (imageSrc) {
-        URL.revokeObjectURL(imageSrc);
+      if (localImageUrl) {
+        URL.revokeObjectURL(localImageUrl);
       }
     };
-  }, [imageSrc]);
-
+  }, [localImageUrl]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop,
@@ -416,7 +413,6 @@ function FileUpload() {
           border: 2px dashed rgba(25, 55, 34, 0.5);
           border-radius: 14px;
           transition: all 0.3s ease;
-          height: 250px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -435,6 +431,8 @@ function FileUpload() {
           justify-content: center;
           text-align: center;
           border-radius: 14px;
+          width: 100%;
+          height: 100%;
         }
 
         .uploaded-image {
@@ -498,19 +496,15 @@ function FileUpload() {
           <div
         {...getRootProps()}
         className={`drag-drop-zone ${isDragActive ? 'active' : ''} mb-6 cursor-pointer`}
+        style={{ height: localImageUrl || imageSrc ? '250px' : '150px' }}
       >
         <input {...getInputProps()} />
         <div className="drag-drop-content">
-          {imageSrc ? (
+          {localImageUrl || imageSrc ? (
             <img 
-              src={imageSrc} 
+              src={localImageUrl || imageSrc}
               alt="Uploaded" 
               className="uploaded-image" 
-              onLoad={() => {
-                if (imageFile) {
-                  URL.revokeObjectURL(imageSrc);
-                }
-              }}
             />
           ) : (
             <>
@@ -522,9 +516,9 @@ function FileUpload() {
           )}
         </div>
       </div>
-
-          {isLoading && <Spinner />}
-          {error && <p className="text-center mt-4 text-red-600">{error}</p>}
+      
+      {isLoading && <Spinner />}
+      {error && <p className="text-center mt-4 text-red-600">{error}</p>}
 
           {identifiedIngredients.length > 0 && (
             <div className="mt-4 mb-6">
