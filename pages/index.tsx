@@ -36,11 +36,15 @@ const LandingPage = () => {
   const toggleMenu = () => setIsMenuOpen((prevState) => !prevState);
 
   const handleChoosePlan = (planType) => {
+    // Encode the Stripe checkout URL for the premium plan
+    const encodedStripeUrl = encodeURIComponent('https://buy.stripe.com/test_6oEbKOa2h5ox61G144');
+    
     if (planType === 'premium') {
-      window.location.href = 'https://buy.stripe.com/test_6oEbKOa2h5ox61G144';
+      // Redirect to sign-in page with premium plan info and return URL
+      window.location.href = `/login?plan=premium&returnUrl=${encodedStripeUrl}`;
     } else {
-      // Redirect to login page for free plan
-      window.location.href = '/login';
+      // Redirect to sign-in page with free plan info
+      window.location.href = '/login?plan=free';
     }
   };
 

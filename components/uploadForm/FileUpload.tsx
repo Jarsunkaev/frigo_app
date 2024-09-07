@@ -46,11 +46,23 @@ function FileUpload() {
     }
   }, [user]);
 
-  const fetchUserData = async () => {
-    await resetGenerations(user.uid); // Check and reset if necessary
-    const data = await getUserData(user.uid);
-    setUserData(data);
-  };
+  const fetchUserData = useCallback(async () => {
+    if (user) {
+      try {
+        const data = await getUserData(user.uid);
+        console.log("Fetched user data:", data);  // Log the fetched data
+        setUserData(data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setError("Failed to fetch user data. Please try again.");
+      }
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
 
   useEffect(() => {
     async function fetchRandomFact() {
@@ -171,14 +183,12 @@ function FileUpload() {
       return;
     }
 
-    const userData = await getUserData(user.uid);
     if (!userData) {
       alert("Unable to fetch user data. Please try again.");
       return;
     }
 
-    const canGenerate = await decrementGenerations(user.uid);
-    if (!canGenerate) {
+    if (userData.generationsLeft <= 0) {
       alert("You've used all your recipe generations for this month. Please upgrade to premium for more.");
       return;
     }
@@ -190,20 +200,28 @@ function FileUpload() {
 
     setIsLoading(true);
     setError(null);
+
     try {
+      const canGenerate = await decrementGenerations(user.uid);
+      if (!canGenerate) {
+        throw new Error("Failed to decrement generations. Please try again.");
+      }
+
       const recipeCount = userData.subscriptionTier === 'premium' ? 15 : 6;
-      
-      const response = await axios.post<Recipe[]>("/api/generateRecipe", {
+      console.log(`Generating ${recipeCount} recipes for ${userData.subscriptionTier} user`);
+
+      const response = await axios.post("/api/generateRecipe", {
         ingredients: identifiedIngredients,
         count: recipeCount
       });
+
       setRecipes(response.data);
     } catch (error) {
       console.error("Failed to generate recipes:", error);
       setError("Failed to generate recipes. Please try again.");
     } finally {
       setIsLoading(false);
-      fetchUserData(); // Refresh user data after generation
+      fetchUserData();  // Refresh user data after generation
     }
   };
 
@@ -426,13 +444,13 @@ function FileUpload() {
           <p className="text-[#193722] mb-4">{randomFact}</p>
 
           {userData && (
-            <div className="bg-[#193722] text-white rounded-[14px] p-3 shadow-md flex items-center justify-between mb-4">
-              <span className="font-semibold">Generations left this month:</span>
-              <span className="bg-white text-[#193722] rounded-full px-3 py-1 font-bold">
-                {userData.generationsLeft}
-              </span>
-            </div>
-          )}
+        <div className="bg-[#193722] text-white rounded-[14px] p-3 shadow-md flex items-center justify-between mb-4">
+          <span className="font-semibold">Generations left this month:</span>
+          <span className="bg-white text-[#193722] rounded-full px-3 py-1 font-bold">
+            {userData.generationsLeft}
+          </span>
+        </div>
+      )}
 
           <div
             {...getRootProps()}

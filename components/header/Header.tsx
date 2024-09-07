@@ -117,6 +117,7 @@ const Header = () => {
 
         <div className="hidden lg:flex lg:items-center space-x-6">
           <a href="/" className="nav-item text-lg">Home</a>
+          <a href="/" className="nav-item text-lg">Generate</a>
           <a href="/about" className="nav-item text-lg">About</a>
           {user && (
             <>
