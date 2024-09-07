@@ -11,12 +11,13 @@ const SignIn = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const { plan, returnUrl } = router.query;
 
   useEffect(() => {
     const unsubscribe = checkAuthState((user) => {
       if (user) {
         console.log("User already signed in");
-        router.push("/generate");
+        handlePostSignInRedirect(user);
       } else {
         setIsLoading(false);
       }
@@ -25,13 +26,23 @@ const SignIn = () => {
     return () => unsubscribe();
   }, [router]);
 
+  const handlePostSignInRedirect = (user) => {
+    if (plan === 'premium' && returnUrl) {
+      // Redirect to Stripe checkout for premium plan
+      window.location.href = decodeURIComponent(returnUrl);
+    } else {
+      // Redirect to generate page or dashboard for free plan
+      router.push("/generate");
+    }
+  };
+
   const handleEmailSignIn = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log("Successful email sign-in");
-      router.push("/generate");
+      handlePostSignInRedirect(userCredential.user);
     } catch (error) {
       console.error("Sign-in error:", error);
       alert(`Sign-in error: ${error.message}`);
@@ -45,7 +56,7 @@ const SignIn = () => {
       const user = await handleGoogleAuth();
       if (user) {
         console.log("Successful Google sign-in");
-        router.push("/generate");
+        handlePostSignInRedirect(user);
       } else {
         console.log("Google sign-in failed");
         setIsLoading(false);
@@ -157,9 +168,9 @@ const SignIn = () => {
             </div>
           </div>
           <button
-                onClick={handleGoogleSignIn}
-                className="w-full py-2 bg-white text-gray-700 font-bold rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors duration-300 flex items-center justify-center"
-              >
+            onClick={handleGoogleSignIn}
+            className="w-full py-2 bg-white text-gray-700 font-bold rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors duration-300 flex items-center justify-center"
+          >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M20.3081 10.2303C20.3081 9.55056 20.253 8.86711 20.1354 8.19836H10.7031V12.0492H16.1046C15.8804 13.2911 15.1602 14.3898 14.1057 15.0879V17.5866H17.3282C19.2205 15.8449 20.3081 13.2728 20.3081 10.2303Z" fill="#3F83F8"/>
               <path d="M10.7019 20.0006C13.3989 20.0006 15.6734 19.1151 17.3306 17.5865L14.1081 15.0879C13.2115 15.6979 12.0541 16.0433 10.7056 16.0433C8.09669 16.0433 5.88468 14.2832 5.091 11.9169H1.76562V14.4927C3.46322 17.8695 6.92087 20.0006 10.7019 20.0006V20.0006Z" fill="#34A853"/>
