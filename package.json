@@ -28,6 +28,7 @@
     "jimp": "^0.22.12",
     "lodash": "^4.17.21",
     "lucide-react": "^0.427.0",
+    "micro": "^10.0.1",
     "multer": "^1.4.5-lts.1",
     "next": "^14.2.5",
     "next-connect": "^1.0.0",
@@ -39,6 +40,7 @@
     "react-firebase-hooks": "^5.1.1",
     "react-typist": "^2.0.5",
     "sharp": "^0.33.4",
+    "stripe": "^16.10.0",
     "typescript": "5.0.4",
     "yarn": "^1.22.21"
   },

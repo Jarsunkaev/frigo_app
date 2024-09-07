@@ -171,6 +171,12 @@ function FileUpload() {
       return;
     }
 
+    const userData = await getUserData(user.uid);
+    if (!userData) {
+      alert("Unable to fetch user data. Please try again.");
+      return;
+    }
+
     const canGenerate = await decrementGenerations(user.uid);
     if (!canGenerate) {
       alert("You've used all your recipe generations for this month. Please upgrade to premium for more.");
@@ -181,11 +187,15 @@ function FileUpload() {
       alert("Please add some ingredients first.");
       return;
     }
+
     setIsLoading(true);
     setError(null);
     try {
+      const recipeCount = userData.subscriptionTier === 'premium' ? 15 : 6;
+      
       const response = await axios.post<Recipe[]>("/api/generateRecipe", {
         ingredients: identifiedIngredients,
+        count: recipeCount
       });
       setRecipes(response.data);
     } catch (error) {

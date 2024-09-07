@@ -39,8 +39,8 @@ const LandingPage = () => {
     if (planType === 'premium') {
       window.location.href = 'https://buy.stripe.com/test_6oEbKOa2h5ox61G144';
     } else {
-      // Handle free plan selection (e.g., show a modal, redirect to registration, etc.)
-      console.log('Free plan selected');
+      // Redirect to login page for free plan
+      window.location.href = '/login';
     }
   };
 

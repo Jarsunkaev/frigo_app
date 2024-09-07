@@ -103,5 +103,32 @@ export const resetGenerations = async (userId) => {
   }
 };
 
+export const cancelUserSubscription = async (userId) => {
+  const userRef = doc(db, "users", userId);
+  await updateDoc(userRef, {
+    subscriptionTier: "free",
+    subscriptionId: null,
+    generationsLeft: 2
+  });
+};
+
+export const updatePaymentStatus = async (userId, succeeded) => {
+  const userRef = doc(db, "users", userId);
+  const userData = await getUserData(userId);
+  
+  if (userData) {
+    if (succeeded) {
+      // If payment succeeded, ensure the user has the correct number of generations
+      await updateDoc(userRef, {
+        generationsLeft: userData.subscriptionTier === "premium" ? 15 : 2
+      });
+    } else {
+      // If payment failed, you might want to handle this case (e.g., notify the user, cancel subscription)
+      console.log(`Payment failed for user ${userId}`);
+      // You could potentially downgrade the user to free tier here if needed
+    }
+  }
+};
+
 // Export all initialized services and functions
 export { app, auth, db, googleProvider };
