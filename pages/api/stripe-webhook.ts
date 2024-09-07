@@ -33,8 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (event.type) {
       case 'checkout.session.completed':
         const checkoutSession = event.data.object as Stripe.Checkout.Session;
-        userId = checkoutSession.client_reference_id;
-        subscriptionId = checkoutSession.subscription as string;
+        userId = checkoutSession.client_reference_id ?? undefined;
+        subscriptionId = checkoutSession.subscription as string | undefined;
         if (userId && subscriptionId) {
           await updateUserSubscription(userId, 'premium', subscriptionId);
         }
@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
         const subscription = event.data.object as Stripe.Subscription;
-        userId = subscription.metadata.userId;
+        userId = subscription.metadata?.userId;
         if (userId) {
           await updateUserSubscription(userId, 'premium', subscription.id);
         }
@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       case 'customer.subscription.deleted':
         const deletedSubscription = event.data.object as Stripe.Subscription;
-        userId = deletedSubscription.metadata.userId;
+        userId = deletedSubscription.metadata?.userId;
         if (userId) {
           await cancelUserSubscription(userId);
         }
@@ -60,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case 'invoice.payment_succeeded':
       case 'invoice.payment_failed':
         const invoice = event.data.object as Stripe.Invoice;
-        userId = invoice.metadata.userId;
+        userId = invoice.metadata?.userId;
         if (userId) {
           await updatePaymentStatus(userId, event.type === 'invoice.payment_succeeded');
         }
@@ -73,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case 'payment_intent.succeeded':
       case 'payment_intent.payment_failed':
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        userId = paymentIntent.metadata.userId;
+        userId = paymentIntent.metadata?.userId;
         if (userId) {
           await updatePaymentStatus(userId, event.type === 'payment_intent.succeeded');
         }
