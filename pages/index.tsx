@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, ChefHat, Check, Menu, X } from 'lucide-react';
 
-const PlanCard = ({ title, price, features, isPopular }) => (
+const PlanCard = ({ title, price, features, isPopular, onChoosePlan }) => (
   <div className={`bg-white rounded-xl shadow-lg p-6 flex flex-col ${isPopular ? 'border-2 border-amber-500' : ''} hover:border-2 border-amber-500 hover:shadow-lg transition duration-500`}>
     <h3 className="text-2xl font-bold mb-4">{title}</h3>
     <p className="text-4xl font-bold mb-6">{price}</p>
@@ -13,7 +13,10 @@ const PlanCard = ({ title, price, features, isPopular }) => (
         </li>
       ))}
     </ul>
-    <button className={`mt-6 py-2 px-4 rounded-full font-bold ${isPopular ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-amber-500 hover:text-white transition duration-200`}>
+    <button 
+      onClick={onChoosePlan}
+      className={`mt-6 py-2 px-4 rounded-full font-bold ${isPopular ? 'hover:bg-amber-500 hover:text-white bg-gray-200 text-gray-800' : 'bg-gray-200 text-gray-800'} hover:bg-amber-500 hover:text-white transition duration-200`}
+    >
       Choose Plan
     </button>
   </div>
@@ -31,6 +34,15 @@ const LandingPage = () => {
   };
 
   const toggleMenu = () => setIsMenuOpen((prevState) => !prevState);
+
+  const handleChoosePlan = (planType) => {
+    if (planType === 'premium') {
+      window.location.href = 'https://buy.stripe.com/test_6oEbKOa2h5ox61G144';
+    } else {
+      // Handle free plan selection (e.g., show a modal, redirect to registration, etc.)
+      console.log('Free plan selected');
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -161,6 +173,7 @@ const LandingPage = () => {
                   "Basic ingredient recognition",
                   "6 recipe suggestions"
                 ]}
+                onChoosePlan={() => handleChoosePlan('free')}
               />
               <PlanCard
                 title="Premium"
@@ -171,6 +184,7 @@ const LandingPage = () => {
                   "12 recipe suggestions"
                 ]}
                 isPopular={true}
+                onChoosePlan={() => handleChoosePlan('premium')}
               />
             </div>
           </div>
