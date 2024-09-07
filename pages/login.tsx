@@ -29,7 +29,7 @@ const SignIn = () => {
   const handlePostSignInRedirect = (user) => {
     if (plan === 'premium' && returnUrl) {
       // Redirect to Stripe checkout for premium plan
-      window.location.href = decodeURIComponent(returnUrl);
+      window.location.href = decodeURIComponent(Array.isArray(returnUrl) ? returnUrl[0] : returnUrl);
     } else {
       // Redirect to generate page or dashboard for free plan
       router.push("/generate");

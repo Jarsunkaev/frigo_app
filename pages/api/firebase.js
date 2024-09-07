@@ -32,101 +32,149 @@ googleProvider.setCustomParameters({
 
 // User management functions
 export const createUser = async (userId, email) => {
+  console.log(`Creating user: ${userId}`);
   const userRef = doc(db, "users", userId);
-  await setDoc(userRef, {
-    email,
-    subscriptionTier: "free",
-    generationsLeft: 2,
-    subscriptionId: null,
-    lastResetDate: new Date().toISOString()
-  });
+  try {
+    await setDoc(userRef, {
+      email,
+      subscriptionTier: "free",
+      generationsLeft: 2,
+      subscriptionId: null,
+      lastResetDate: new Date().toISOString()
+    });
+    console.log(`User created successfully: ${userId}`);
+  } catch (error) {
+    console.error(`Error creating user: ${userId}`, error);
+    throw error;
+  }
 };
 
 export const getUserData = async (userId) => {
+  console.log(`Fetching user data: ${userId}`);
   const userRef = doc(db, "users", userId);
-  const userSnap = await getDoc(userRef);
-  if (userSnap.exists()) {
-    return userSnap.data();
-  } else {
-    console.log("No such user!");
-    return null;
+  try {
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+      console.log(`User data fetched: ${userId}`, userData);
+      return userData;
+    } else {
+      console.log(`No user found: ${userId}`);
+      return null;
+    }
+  } catch (error) {
+    console.error(`Error fetching user data: ${userId}`, error);
+    throw error;
   }
 };
 
 export const updateUserSubscription = async (userId, subscriptionTier, subscriptionId) => {
+  console.log(`Updating user subscription: ${userId} to ${subscriptionTier}`);
   const userRef = doc(db, "users", userId);
-  await updateDoc(userRef, {
-    subscriptionTier,
-    subscriptionId,
-    generationsLeft: subscriptionTier === "premium" ? 15 : 2,
-    lastResetDate: new Date().toISOString()
-  });
+  try {
+    await updateDoc(userRef, {
+      subscriptionTier,
+      subscriptionId,
+      generationsLeft: subscriptionTier === "premium" ? 15 : 2,
+      lastResetDate: new Date().toISOString()
+    });
+    console.log(`User subscription updated: ${userId}`);
+  } catch (error) {
+    console.error(`Error updating user subscription: ${userId}`, error);
+    throw error;
+  }
 };
 
 export const decrementGenerations = async (userId) => {
+  console.log(`Decrementing generations for user: ${userId}`);
   const userRef = doc(db, "users", userId);
-  const userData = await getUserData(userId);
-  
-  if (userData && userData.generationsLeft > 0) {
-    await updateDoc(userRef, {
-      generationsLeft: userData.generationsLeft - 1
-    });
-    return true;
+  try {
+    const userData = await getUserData(userId);
+    if (userData && userData.generationsLeft > 0) {
+      await updateDoc(userRef, {
+        generationsLeft: userData.generationsLeft - 1
+      });
+      console.log(`Generations decremented for user: ${userId}`);
+      return true;
+    }
+    console.log(`No generations left for user: ${userId}`);
+    return false;
+  } catch (error) {
+    console.error(`Error decrementing generations: ${userId}`, error);
+    throw error;
   }
-  return false;
 };
 
 export const resetGenerations = async (userId) => {
+  console.log(`Resetting generations for user: ${userId}`);
   const userRef = doc(db, "users", userId);
-  const userSnap = await getDoc(userRef);
-  
-  const now = new Date();
-  
-  if (!userSnap.exists()) {
-    // If the user document doesn't exist, create it
-    await setDoc(userRef, {
-      subscriptionTier: "free",
-      generationsLeft: 2,
-      lastResetDate: now.toISOString()
-    });
-    return;
-  }
-  
-  const userData = userSnap.data();
-  const lastReset = userData.lastResetDate ? new Date(userData.lastResetDate) : new Date(0);
-  
-  if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
-    await updateDoc(userRef, {
-      generationsLeft: userData.subscriptionTier === "premium" ? 15 : 2,
-      lastResetDate: now.toISOString()
-    });
+  try {
+    const userSnap = await getDoc(userRef);
+    const now = new Date();
+    
+    if (!userSnap.exists()) {
+      console.log(`User not found, creating new user: ${userId}`);
+      await setDoc(userRef, {
+        subscriptionTier: "free",
+        generationsLeft: 2,
+        lastResetDate: now.toISOString()
+      });
+      return;
+    }
+    
+    const userData = userSnap.data();
+    const lastReset = userData.lastResetDate ? new Date(userData.lastResetDate) : new Date(0);
+    
+    if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
+      await updateDoc(userRef, {
+        generationsLeft: userData.subscriptionTier === "premium" ? 15 : 2,
+        lastResetDate: now.toISOString()
+      });
+      console.log(`Generations reset for user: ${userId}`);
+    } else {
+      console.log(`No reset needed for user: ${userId}`);
+    }
+  } catch (error) {
+    console.error(`Error resetting generations: ${userId}`, error);
+    throw error;
   }
 };
 
 export const cancelUserSubscription = async (userId) => {
+  console.log(`Cancelling subscription for user: ${userId}`);
   const userRef = doc(db, "users", userId);
-  await updateDoc(userRef, {
-    subscriptionTier: "free",
-    subscriptionId: null,
-    generationsLeft: 2
-  });
+  try {
+    await updateDoc(userRef, {
+      subscriptionTier: "free",
+      subscriptionId: null,
+      generationsLeft: 2
+    });
+    console.log(`Subscription cancelled for user: ${userId}`);
+  } catch (error) {
+    console.error(`Error cancelling subscription: ${userId}`, error);
+    throw error;
+  }
 };
 
 export const updatePaymentStatus = async (userId, succeeded) => {
+  console.log(`Updating payment status for user: ${userId}, succeeded: ${succeeded}`);
   const userRef = doc(db, "users", userId);
-  const userData = await getUserData(userId);
-  
-  if (userData) {
-    if (succeeded) {
-      // If payment succeeded, ensure the user has the correct number of generations
-      await updateDoc(userRef, {
-        generationsLeft: userData.subscriptionTier === "premium" ? 15 : 2
-      });
-    } else {
-      // If payment failed, you might want to handle this case (e.g., notify the user, cancel subscription)
-      console.log(`Payment failed for user ${userId}`);
-      // You could potentially downgrade the user to free tier here if needed
+  try {
+    const userData = await getUserData(userId);
+    if (userData) {
+      if (succeeded) {
+        await updateDoc(userRef, {
+          generationsLeft: userData.subscriptionTier === "premium" ? 15 : 2
+        });
+        console.log(`Payment succeeded, updated generations for user: ${userId}`);
+      } else {
+        console.log(`Payment failed for user: ${userId}`);
+        // You could potentially downgrade the user to free tier here if needed
+      }
     }
+  } catch (error) {
+    console.error(`Error updating payment status: ${userId}`, error);
+    throw error;
   }
 };
 
