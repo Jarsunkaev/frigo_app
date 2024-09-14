@@ -11,8 +11,13 @@ export default async function generateRecipe(req: NextApiRequest, res: NextApiRe
         return res.status(405).end();
     }
 
-    const { ingredients, count } = req.body;
+    // Log the request body
+    console.log('Request Body:', req.body);
 
+    // Validate request body
+    const { ingredients } = req.body;
+
+    // Check if ingredients is an array and contains only strings
     if (!Array.isArray(ingredients) || !ingredients.every(item => typeof item === 'string')) {
         console.error('Invalid ingredients format. It must be an array of strings.');
         return res.status(400).json({ error: 'Invalid ingredients format. It must be an array of strings.' });
@@ -23,21 +28,15 @@ export default async function generateRecipe(req: NextApiRequest, res: NextApiRe
         return res.status(400).json({ error: 'No ingredients provided.' });
     }
 
-    if (typeof count !== 'number' || count <= 0 || count > 15) {
-        console.error('Invalid recipe count.');
-        return res.status(400).json({ error: 'Invalid recipe count. It must be a number between 1 and 15.' });
-    }
-
     try {
         console.log('Ingredients:', ingredients);
-        console.log('Recipe count:', count);
         console.log('API Key:', process.env.SPOONACULAR_API_KEY ? 'Set' : 'Not Set');
 
         const response = await axios.get<RecipeResponse[]>('https://api.spoonacular.com/recipes/findByIngredients', {
             params: {
                 apiKey: process.env.SPOONACULAR_API_KEY,
                 ingredients: ingredients.join(','),
-                number: count,
+                number: 6,
             }
         });
 

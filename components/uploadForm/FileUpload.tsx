@@ -5,7 +5,6 @@ import { auth, db } from "../../pages/api/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { Heart } from 'lucide-react';
 import axios from "axios";
-import { getUserData, decrementGenerations, resetGenerations } from '../../pages/api/firebase';
 
 type Recipe = {
   id: number;
@@ -25,6 +24,122 @@ type RecipeDetails = {
   extendedIngredients: Array<{ original: string }>;
 };
 
+const Spinner = () => (
+  <div className="flex justify-center items-center mt-4 align-middle">
+    <svg className="w-16 h-16" viewBox="0 0 50 50">
+      <circle
+        cx="25"
+        cy="25"
+        r="20"
+        fill="none"
+        stroke="#e6f4ea"
+        strokeWidth="4"
+      />
+      <circle
+        cx="25"
+        cy="25"
+        r="20"
+        fill="none"
+        stroke="#193722"
+        strokeWidth="4"
+        strokeDasharray="31.4 31.4"
+        strokeLinecap="round"
+        transform="rotate(-90 25 25)"
+      >
+        <animateTransform
+          attributeName="transform"
+          type="rotate"
+          from="0 25 25"
+          to="360 25 25"
+          dur="1s"
+          repeatCount="indefinite"
+        />
+      </circle>
+      <path
+        d="M25 15 L25 20 M25 30 L25 35 M15 25 L20 25 M30 25 L35 25"
+        stroke="#193722"
+        strokeWidth="4"
+        strokeLinecap="round"
+      >
+        <animateTransform
+          attributeName="transform"
+          type="rotate"
+          from="0 25 25"
+          to="360 25 25"
+          dur="6s"
+          repeatCount="indefinite"
+        />
+      </path>
+    </svg>
+  </div>
+);
+
+const Autocomplete: React.FC<{ onSelect: (ingredient: string) => void }> = ({ onSelect }) => {
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [inputValue, setInputValue] = useState<string>('');
+
+  useEffect(() => {
+    if (inputValue) {
+      const fetchSuggestions = async () => {
+        try {
+          const response = await axios.get(`https://api.spoonacular.com/food/ingredients/autocomplete`, {
+            params: {
+              query: inputValue,
+              number: 5,
+              apiKey: process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY,
+            },
+          });
+          setSuggestions(response.data.map((item: { name: string }) => item.name));
+        } catch (error) {
+          console.error('Error fetching suggestions:', error);
+        }
+      };
+
+      fetchSuggestions();
+    } else {
+      setSuggestions([]);
+    }
+  }, [inputValue]);
+
+  const handleSelect = (suggestion: string) => {
+    onSelect(suggestion);
+    setInputValue('');
+    setSuggestions([]);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && suggestions.length > 0) {
+      handleSelect(suggestions[0]);
+    }
+  };
+
+  return (
+    <div className="relative flex-grow">
+      <input
+        type="text"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Add new ingredient"
+        className="w-full px-4 py-2 border-2 border-r-0 border-[#193722] rounded-l-lg text-[#193722] bg-white bg-opacity-50"
+      />
+      {suggestions.length > 0 && (
+        <ul className="absolute z-10 w-full bg-white border border-[#193722] mt-1 rounded-lg shadow-lg">
+          {suggestions.map((suggestion, index) => (
+            <li
+              key={index}
+              onClick={() => handleSelect(suggestion)}
+              className="cursor-pointer p-2 hover:bg-gray-200 text-[#193722]"
+            >
+              {suggestion}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
 function FileUpload() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -38,30 +153,6 @@ function FileUpload() {
   const [newIngredient, setNewIngredient] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | any>(null);
-  const [userData, setUserData] = useState(null);
-
-  useEffect(() => {
-    if (user) {
-      fetchUserData();
-    }
-  }, [user]);
-
-  const fetchUserData = useCallback(async () => {
-    if (user) {
-      try {
-        const data = await getUserData(user.uid);
-        console.log("Fetched user data:", data);  // Log the fetched data
-        setUserData(data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError("Failed to fetch user data. Please try again.");
-      }
-    }
-  }, [user]);
-
-  useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
 
 
   useEffect(() => {
@@ -77,17 +168,6 @@ function FileUpload() {
   }, []);
 
   const processImage = async (image: File) => {
-    if (!user) {
-      alert("You need to be logged in to generate recipes.");
-      return;
-    }
-
-    const canGenerate = await decrementGenerations(user.uid);
-    if (!canGenerate) {
-      alert("You've used all your recipe generations for this month. Please upgrade to premium for more.");
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
     try {
@@ -108,7 +188,6 @@ function FileUpload() {
       setError("Failed to process image. Please try again.");
     } finally {
       setIsLoading(false);
-      fetchUserData(); // Refresh user data after generation
     }
   };
 
@@ -178,50 +257,22 @@ function FileUpload() {
   };
 
   const handleGenerateRecipes = async () => {
-    if (!user) {
-      alert("You need to be logged in to generate recipes.");
-      return;
-    }
-
-    if (!userData) {
-      alert("Unable to fetch user data. Please try again.");
-      return;
-    }
-
-    if (userData.generationsLeft <= 0) {
-      alert("You've used all your recipe generations for this month. Please upgrade to premium for more.");
-      return;
-    }
-
     if (identifiedIngredients.length === 0) {
       alert("Please add some ingredients first.");
       return;
     }
-
     setIsLoading(true);
     setError(null);
-
     try {
-      const canGenerate = await decrementGenerations(user.uid);
-      if (!canGenerate) {
-        throw new Error("Failed to decrement generations. Please try again.");
-      }
-
-      const recipeCount = userData.subscriptionTier === 'premium' ? 15 : 6;
-      console.log(`Generating ${recipeCount} recipes for ${userData.subscriptionTier} user`);
-
-      const response = await axios.post("/api/generateRecipe", {
+      const response = await axios.post<Recipe[]>("/api/generateRecipe", {
         ingredients: identifiedIngredients,
-        count: recipeCount
       });
-
       setRecipes(response.data);
     } catch (error) {
       console.error("Failed to generate recipes:", error);
       setError("Failed to generate recipes. Please try again.");
     } finally {
       setIsLoading(false);
-      fetchUserData();  // Refresh user data after generation
     }
   };
 
@@ -437,47 +488,37 @@ function FileUpload() {
           justify-content: center;
         }
       `}</style>
-
       <div className="flex justify-start items-start min-h-screen p-4 mt-2 mb-20 bg-[#fcf9ed] content-wrapper">
         <div className="bg-white bg-opacity-40 backdrop-filter backdrop-blur-md p-6 rounded-3xl shadow-lg w-full max-w-2xl border-2 border-[#193722] recipe-generator">
           <h2 className="text-2xl font-bold mb-4 text-[#193722]">Recipe Generator</h2>
           <p className="text-[#193722] mb-4">{randomFact}</p>
 
-          {userData && (
-        <div className="bg-[#193722] text-white rounded-[14px] p-3 shadow-md flex items-center justify-between mb-4">
-          <span className="font-semibold">Generations left this month:</span>
-          <span className="bg-white text-[#193722] rounded-full px-3 py-1 font-bold">
-            {userData.generationsLeft}
-          </span>
-        </div>
-      )}
-
           <div
-            {...getRootProps()}
-            className={`drag-drop-zone ${isDragActive ? 'active' : ''} mb-6 cursor-pointer`}
-            style={{ height: localImageUrl || imageSrc ? '250px' : '150px' }}
-          >
-            <input {...getInputProps()} />
-            <div className="drag-drop-content">
-              {localImageUrl || imageSrc ? (
-                <img 
-                  src={localImageUrl || imageSrc}
-                  alt="Uploaded" 
-                  className="uploaded-image" 
-                />
-              ) : (
-                <>
-                  <span className="block text-3xl mb-2"></span>
-                  <p className="text-[#193722]">
-                    Upload or take a picture of your ingredients
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
+        {...getRootProps()}
+        className={`drag-drop-zone ${isDragActive ? 'active' : ''} mb-6 cursor-pointer`}
+        style={{ height: localImageUrl || imageSrc ? '250px' : '150px' }}
+      >
+        <input {...getInputProps()} />
+        <div className="drag-drop-content">
+          {localImageUrl || imageSrc ? (
+            <img 
+              src={localImageUrl || imageSrc}
+              alt="Uploaded" 
+              className="uploaded-image" 
+            />
+          ) : (
+            <>
+              <span className="block text-3xl mb-2"></span>
+              <p className="text-[#193722]">
+                Upload or take a picture of your ingredients
+              </p>
+            </>
+          )}
+        </div>
+      </div>
       
-          {isLoading && <Spinner />}
-          {error && <p className="text-center mt-4 text-red-600">{error}</p>}
+      {isLoading && <Spinner />}
+      {error && <p className="text-center mt-4 text-red-600">{error}</p>}
 
           {identifiedIngredients.length > 0 && (
             <div className="mt-4 mb-6">
@@ -513,6 +554,7 @@ function FileUpload() {
           <button onClick={handleGenerateRecipes} className="generate-button">
             Generate Recipes
           </button>
+
 
           {recipes.length > 0 && (
             <div className="mt-8">
@@ -553,19 +595,63 @@ function FileUpload() {
         </div>
       </div>
 
-      {/* Modal for selected recipe details */}
       {selectedRecipe && (
         <div className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50 modal-overlay" onClick={() => setSelectedRecipe(null)}>
           <div 
             className="bg-white bg-opacity-95 backdrop-filter backdrop-blur-lg rounded-3xl shadow-lg p-6 max-w-2xl w-full max-h-[85vh] overflow-y-auto modal-content"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Recipe details content */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-[#193722]">{selectedRecipe.title}</h2>
+              <button 
+                onClick={() => setSelectedRecipe(null)}
+                className="text-[#193722] hover:text-red-600 transition-colors duration-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <img src={selectedRecipe.image} alt={selectedRecipe.title} className="w-full h-48 object-cover rounded-lg mb-4" />
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-[#193722] bg-opacity-10 p-3 rounded-lg">
+                <p className="text-[#193722] text-lg font-semibold">Servings</p>
+                <p className="text-[#193722] text-xl">{selectedRecipe.servings}</p>
+              </div>
+              <div className="bg-[#193722] bg-opacity-10 p-3 rounded-lg">
+                <p className="text-[#193722] text-lg font-semibold">Cooking Time</p>
+                <p className="text-[#193722] text-xl">{selectedRecipe.readyInMinutes} mins</p>
+              </div>
+            </div>
+            <div className="mb-6">
+              <h3 className="font-bold text-[#193722] text-xl mb-2">Ingredients:</h3>
+              {selectedRecipe.extendedIngredients && selectedRecipe.extendedIngredients.length > 0 ? (
+                <ul className="list-disc pl-5">
+                  {selectedRecipe.extendedIngredients.map((ingredient, index) => (
+                    <li key={index} className="text-[#193722] text-lg mb-1">{ingredient.original}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[#193722] text-lg">Ingredients information not available.</p>
+              )}
+            </div>
+            <div className="mb-6">
+              <h3 className="font-bold text-[#193722] text-xl mb-2">Instructions:</h3>
+              <p className="text-[#193722] text-lg whitespace-pre-line">
+                {selectedRecipe.instructions ? selectedRecipe.instructions.replace(/<[^>]*>/g, '') : 'No instructions available.'}
+              </p>
+            </div>
+            <a
+              href={selectedRecipe.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full py-2 bg-transparent text-[#193722] font-bold text-center rounded-lg border-2 border-[#193722] hover:bg-[#193722] hover:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#193722]" 
+            >
+              Go to Recipe
+            </a>
           </div>
         </div>
       )}
-
-      {/* Notification for saved recipe */}
       {savedRecipeId !== null && (
         <div className="fixed top-0 left-0 right-0 flex justify-center items-center p-4 notification">
           <div className="bg-[#193722] text-white px-4 py-2 rounded-full flex items-center">

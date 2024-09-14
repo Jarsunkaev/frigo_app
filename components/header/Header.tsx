@@ -117,14 +117,9 @@ const Header = () => {
 
         <div className="hidden lg:flex lg:items-center space-x-6">
           <a href="/" className="nav-item text-lg">Home</a>
-          <a href="/" className="nav-item text-lg">Generate</a>
+          <a href="/generate" className="nav-item text-lg">Generate</a>
           <a href="/about" className="nav-item text-lg">About</a>
-          {user && (
-            <>
-              <a href="/recipes" className="nav-item text-lg">My Recipes</a>
-              <a href="/subscription" className="nav-item text-lg">Subscription</a>
-            </>
-          )}
+          <a href="/recipes" className="nav-item text-lg">My Recipes</a>
           {user ? (
             <button onClick={handleSignOut} className="nav-item text-lg">Sign Out</button>
           ) : (
@@ -157,13 +152,9 @@ const Header = () => {
         <div ref={menuRef} className="lg:hidden absolute w-full bg-fcf9ed shadow-md z-10 mobile-menu">
           <div className="flex flex-col h-screen justify-center items-start px-4 py-6 space-y-4">
             <a href="/" className="nav-item text-xl">Home</a>
+            <a href="/generate" className="nav-item text-xl">Generate</a>
             <a href="/about" className="nav-item text-xl">About</a>
-            {user && (
-              <>
-                <a href="/recipes" className="nav-item text-xl">My Recipes</a>
-                <a href="/subscription" className="nav-item text-xl">Subscription</a>
-              </>
-            )}
+            <a href="/recipes" className="nav-item text-xl">My Recipes</a>
             {user ? (
               <button onClick={handleSignOut} className="nav-item text-xl">Sign Out</button>
             ) : (
