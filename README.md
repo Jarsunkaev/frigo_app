@@ -2,7 +2,7 @@
 
 **Recipe Recommender Web App**
 
-Visit the app at https://frigo-app.fly.dev/
+Visit the app at https://www.frigo-app.com
 
 This is a web application that recommends recipes based on the ingredients available in the user's fridge or pantry. Users can take a picture of their fridge/pantry and upload it to the app. The app uses image recognition to identify the ingredients and then generates recipe suggestions using the Spoonacular API.
 
