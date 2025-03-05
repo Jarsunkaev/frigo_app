@@ -1,15 +1,20 @@
+// pages/login.tsx - Enhanced with password validation
 import React, { useState, useEffect } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, User } from "firebase/auth";
 import { useRouter } from "next/router";
 import { auth } from "../pages/api/firebase";
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
 import { handleGoogleAuth, checkAuthState } from "../utils/auth-utils";
+import { ChevronLeft, Loader, Eye, EyeOff, Shield, AlertCircle } from 'lucide-react';
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
   const router = useRouter();
   const { plan, returnUrl } = router.query;
 
@@ -26,32 +31,42 @@ const SignIn = () => {
     return () => unsubscribe();
   }, [router]);
 
-  const handlePostSignInRedirect = (user) => {
+  const handlePostSignInRedirect = (user: User) => {
     if (plan === 'premium' && returnUrl) {
-      // Redirect to Stripe checkout for premium plan
       window.location.href = decodeURIComponent(Array.isArray(returnUrl) ? returnUrl[0] : returnUrl);
     } else {
-      // Redirect to generate page or dashboard for free plan
       router.push("/generate");
     }
   };
 
   const handleEmailSignIn = async (e) => {
     e.preventDefault();
+    
+    if (!password || password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+    
     setIsLoading(true);
+    setError("");
+    
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log("Successful email sign-in");
+      setLoginAttempts(0); // Reset login attempts on success
       handlePostSignInRedirect(userCredential.user);
     } catch (error) {
       console.error("Sign-in error:", error);
-      alert(`Sign-in error: ${error.message}`);
+      setLoginAttempts(prevAttempts => prevAttempts + 1);
+      setError(getErrorMessage((error as any).code));
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    setError("");
+    
     try {
       const user = await handleGoogleAuth();
       if (user) {
@@ -63,124 +78,209 @@ const SignIn = () => {
       }
     } catch (error) {
       console.error("Google sign-in error:", error);
-      alert(`Google sign-in error: ${error.message}`);
+      setError(getErrorMessage((error as any).code));
       setIsLoading(false);
     }
   };
 
-  const Spinner = () => (
-    <div className="flex justify-center items-center mt-4 align-middle">
-      <svg className="w-16 h-16" viewBox="0 0 50 50">
-        <circle
-          cx="25"
-          cy="25"
-          r="20"
-          fill="none"
-          stroke="#e6f4ea"
-          strokeWidth="4"
-        />
-        <circle
-          cx="25"
-          cy="25"
-          r="20"
-          fill="none"
-          stroke="#193722"
-          strokeWidth="4"
-          strokeDasharray="31.4 31.4"
-          strokeLinecap="round"
-          transform="rotate(-90 25 25)"
-        >
-          <animateTransform
-            attributeName="transform"
-            type="rotate"
-            from="0 25 25"
-            to="360 25 25"
-            dur="1s"
-            repeatCount="indefinite"
-          />
-        </circle>
-        <path
-          d="M25 15 L25 20 M25 30 L25 35 M15 25 L20 25 M30 25 L35 25"
-          stroke="#193722"
-          strokeWidth="4"
-          strokeLinecap="round"
-        >
-          <animateTransform
-            attributeName="transform"
-            type="rotate"
-            from="0 25 25"
-            to="360 25 25"
-            dur="6s"
-            repeatCount="indefinite"
-          />
-        </path>
-      </svg>
-    </div>
-  );
+  const getErrorMessage = (errorCode) => {
+    switch (errorCode) {
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/user-disabled':
+        return 'This account has been disabled.';
+      case 'auth/user-not-found':
+        return 'No account found with this email.';
+      case 'auth/wrong-password':
+        return 'Incorrect password.';
+      default:
+        return 'An error occurred. Please try again.';
+    }
+  };
 
   if (isLoading) {
-    return <div><Spinner /></div>;
-  }
-
-  return (
-    <div className="flex min-h-screen flex-col bg-[#fcf9ed]">
-      <Header />
-      <div className="flex-grow flex items-center justify-center px-4">
-        <div className="w-full max-w-md p-6 bg-white bg-opacity-40 backdrop-filter backdrop-blur-md rounded-3xl shadow-lg border-2 border-[#193722]">
-          <h1 className="text-2xl font-bold text-center mb-6 text-[#193722]">Sign In</h1>
-          <form onSubmit={handleEmailSignIn}>
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-[#193722] font-bold mb-2">
-                Email Address:
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[#193722] focus:outline-none focus:ring-1 focus:ring-[#193722]"
-                required
-              />
-            </div>
-            <div className="mb-6">
-              <label htmlFor="password" className="block text-[#193722] font-bold mb-2">
-                Password:
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[#193722] focus:outline-none focus:ring-1 focus:ring-[#193722]"
-                required
-              />
-            </div>
-            <button type="submit" className="w-full py-2 mb-4 bg-transparent text-[#193722] font-bold rounded-lg border-2 border-[#193722] hover:bg-[#193722] hover:text-white transition-colors duration-300">
-              Sign In with Email
-            </button>
-          </form>
-          <div className="relative py-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or</span>
-            </div>
-          </div>
-          <button
-            onClick={handleGoogleSignIn}
-            className="w-full py-2 bg-white text-gray-700 font-bold rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors duration-300 flex items-center justify-center"
-          >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20.3081 10.2303C20.3081 9.55056 20.253 8.86711 20.1354 8.19836H10.7031V12.0492H16.1046C15.8804 13.2911 15.1602 14.3898 14.1057 15.0879V17.5866H17.3282C19.2205 15.8449 20.3081 13.2728 20.3081 10.2303Z" fill="#3F83F8"/>
-              <path d="M10.7019 20.0006C13.3989 20.0006 15.6734 19.1151 17.3306 17.5865L14.1081 15.0879C13.2115 15.6979 12.0541 16.0433 10.7056 16.0433C8.09669 16.0433 5.88468 14.2832 5.091 11.9169H1.76562V14.4927C3.46322 17.8695 6.92087 20.0006 10.7019 20.0006V20.0006Z" fill="#34A853"/>
-              <path d="M5.08857 11.9169C4.66969 10.6749 4.66969 9.33008 5.08857 8.08811V5.51233H1.76688C0.348541 8.33798 0.348541 11.667 1.76688 14.4927L5.08857 11.9169V11.9169Z" fill="#FBBC04"/>
-              <path d="M10.7019 3.95805C12.1276 3.936 13.5055 4.47247 14.538 5.45722L17.393 2.60218C15.5852 0.904587 13.1858 -0.0287217 10.7019 0.000673888C6.92087 0.000673888 3.46322 2.13185 1.76562 5.51234L5.08732 8.08813C5.87733 5.71811 8.09302 3.95805 10.7019 3.95805V3.95805Z" fill="#EA4335"/>
-            </svg>
-            Sign in with Google
-          </button>
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-amber-50">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  // Show a forgot password link after multiple failed attempts
+  const showForgotPassword = loginAttempts >= 2;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100/50">
+      <Header />
+      
+      {/* Main content with extra padding for mobile */}
+      <main className="flex-grow flex items-center justify-center px-4 py-16 pt-16 md:pt-16">
+        <div className="w-full max-w-md">
+          {/* Back Button */}
+          <button
+            onClick={() => router.push('/')}
+            className="mb-8 flex items-center text-gray-600 hover:text-amber-600 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 mr-1" />
+            Back to home
+          </button>
+
+          <div className="bg-white bg-opacity-50 backdrop-blur-lg rounded-2xl shadow-xl border border-white border-opacity-20 p-6 sm:p-8">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+              <p className="text-gray-600">Sign in to your account to continue</p>
+            </div>
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-lg flex items-start">
+                <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 mr-2 flex-shrink-0" />
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
+            {plan === 'premium' && (
+              <div className="mb-6 p-4 bg-amber-50 border border-amber-100 rounded-lg">
+                <p className="text-sm text-amber-700 flex items-center">
+                  <Shield className="h-5 w-5 mr-2 text-amber-500" />
+                  <span>You're about to upgrade to Premium. Please sign in to continue.</span>
+                </p>
+              </div>
+            )}
+
+            <form onSubmit={handleEmailSignIn} className="space-y-6">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+                  placeholder="name@example.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between mb-2">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  {showForgotPassword && (
+                    <a
+                      href="/forgot-password"
+                      className="text-sm text-amber-600 hover:text-amber-500"
+                    >
+                      Forgot password?
+                    </a>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+                {password && password.length < 6 && (
+                  <p className="mt-1 text-xs text-amber-600">
+                    Password must be at least 6 characters
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !email || password.length < 6}
+                className="w-full bg-amber-500 text-white py-3 rounded-lg font-medium hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <Loader className="w-5 h-5 animate-spin mr-2" />
+                    Signing in...
+                  </span>
+                ) : (
+                  'Sign In'
+                )}
+              </button>
+            </form>
+
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-gray-500">or</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              Continue with Google
+            </button>
+
+            <p className="mt-6 text-center text-sm text-gray-600">
+              Don't have an account?{' '}
+              <a
+                href="/register"
+                className="text-amber-600 hover:text-amber-700 font-medium"
+              >
+                Sign up
+              </a>
+            </p>
+          </div>
+          
+          {/* Security notice */}
+          <div className="mt-6 text-center text-xs text-gray-500 max-w-sm mx-auto">
+            <p className="flex items-center justify-center">
+              <Shield className="h-3 w-3 mr-1 text-gray-400" />
+              Your security is important to us. Never share your password.
+            </p>
+          </div>
+        </div>
+      </main>
+
       <Footer />
     </div>
   );

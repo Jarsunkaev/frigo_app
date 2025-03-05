@@ -1,95 +1,186 @@
 import React from "react";
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
+import { Camera, Leaf, ChefHat, Utensils, ArrowRight } from 'lucide-react';
 
 const AboutPage = () => {
+  const features = [
+    {
+      title: 'Capture Ingredients',
+      description: 'Simply snap a photo of your fridge or pantry contents',
+      icon: Camera,
+      image: 'capture.webp',
+      color: 'bg-blue-50'
+    },
+    {
+      title: 'Smart Recognition',
+      description: 'Our AI technology identifies your available ingredients',
+      icon: Leaf,
+      image: 'analyse.png',
+      color: 'bg-green-50'
+    },
+    {
+      title: 'Recipe Matching',
+      description: 'Get personalized recipe suggestions based on what you have',
+      icon: ChefHat,
+      image: 'recipes.png',
+      color: 'bg-amber-50'
+    },
+    {
+      title: 'Cook & Enjoy',
+      description: 'Transform your ingredients into delicious meals',
+      icon: Utensils,
+      image: 'cook.png',
+      color: 'bg-red-50'
+    }
+  ];
+
+  const stats = [
+    { value: '33%', label: 'of global food production goes to waste annually' },
+    { value: '$1500', label: 'average annual savings per household using Frigo' },
+    { value: '60%', label: 'reduction in household food waste with smart planning' }
+  ];
+
   return (
-    <div className="bg-fcf9ed min-h-screen relative">
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden md:hidden">
-        <svg className="absolute top-0 left-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="5%" cy="10%" r="50" fill="#10B981" opacity="0.1" className="moving-circle" />
-          <circle cx="95%" cy="50%" r="100" fill="#10B981" opacity="0.1" className="moving-circle" />
-          <circle cx="10%" cy="90%" r="70" fill="#10B981" opacity="0.1" className="moving-circle" />
-        </svg>
-      </div>
-
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden hidden md:block">
-        <svg className="absolute top-0 left-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="5%" cy="10%" r="50" fill="#10B981" opacity="0.1" className="moving-circle" />
-          <circle cx="95%" cy="50%" r="100" fill="#10B981" opacity="0.1" className="moving-circle" />
-          <circle cx="10%" cy="90%" r="70" fill="#10B981" opacity="0.1" className="moving-circle" />
-        </svg>
-      </div>
-
-      <div className="relative z-10">
-        <Header />
-        
-        <div className="container mx-auto mt-24 p-8">
-          <h1 className="text-5xl font-bold text-center my-12 text-[#193722]">
-            Cook Smart, Waste Less
-          </h1>
-          
-          <div className="max-w-4xl mx-auto bg-white bg-opacity-40 backdrop-filter backdrop-blur-xl rounded-3xl shadow-lg p-8 mb-16 border border-white border-opacity-20">
-            <p className="text-xl mb-6 text-[#193722]">
-              We've all been there - staring into a full fridge but feeling like there's nothing to eat. That's where Frigo comes in!
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white">
+      <Header />
+      
+      <main className="pt-24">
+        {/* Hero Section */}
+        <section className="container mx-auto px-4 py-16">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+              Cook Smart,{' '}
+              <span className="text-amber-500">Waste Less</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8">
+              Your AI-powered kitchen assistant for sustainable cooking and smarter meal planning
             </p>
-            <p className="text-xl mb-6 text-[#193722]">
-              Just snap a pic of your fridge or pantry, and let our smart tech do the rest. We'll identify what you've got and whip up recipe ideas that'll make your taste buds dance. No more forgotten veggies or mystery leftovers!
-            </p>
-            <p className="text-xl mb-6 text-[#193722]">
-              Thanks to our buddies at Spoonacular, you'll get recipes that are not just delicious, but also use up what you already have. It's time to unleash your inner chef and turn those random ingredients into mouthwatering meals!
-            </p>
+            <a 
+              href="/generate"
+              className="inline-flex items-center justify-center px-8 py-4 bg-amber-500 text-white rounded-full font-semibold hover:bg-amber-600 transition-colors group"
+            >
+              Get Started
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </a>
           </div>
+        </section>
 
-          <div className="max-w-4xl mx-auto mt-16 relative mb-24">
-            <div className="bg-white bg-opacity-40 backdrop-filter backdrop-blur-xl rounded-3xl shadow-lg p-8 relative z-10 border border-white border-opacity-20">
-              <h2 className="text-4xl font-bold text-center my-8 text-[#193722]">
-                Join the Fight Against Food Waste
-              </h2>
-              <div className="text-center">
-                <p className="text-xl mb-6 text-[#193722]">
-                  Did you know that about one-third of all food produced globally goes to waste? That's not just bad for our wallets - it's terrible for the planet too.
-                </p>
-                <p className="text-xl mb-6 text-[#193722]">
-                  Frigo is on a mission to change that. By helping you use what you already have, we're not just saving you money - we're helping you become a sustainability superhero!
-                </p>
-                <p className="text-xl mb-6 text-[#193722]">
-                  Every recipe you make with Frigo is a step towards a world with less waste. So go ahead, take that photo, and let's turn your fridge into a treasure trove of delicious possibilities!
-                </p>
+        {/* Mission Section */}
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-3xl p-8 md:p-12">
+                <h2 className="text-3xl font-bold text-gray-900 mb-8">Our Mission</h2>
+                <div className="space-y-6 text-lg text-gray-600">
+                  <p>
+                    We've all been there - staring into a full fridge but feeling like there's nothing to eat. 
+                    That's where Frigo comes in! We're revolutionizing the way you cook by turning your 
+                    kitchen into a hub of sustainable culinary creativity.
+                  </p>
+                  <p>
+                    Through the power of AI and computer vision, we help you identify ingredients you already 
+                    have and suggest delicious recipes that make the most of them. No more forgotten veggies 
+                    or mystery leftovers!
+                  </p>
+                  <p>
+                    Working with our partners at Spoonacular, we provide you with recipes that are not just 
+                    delicious but also practical, helping you reduce waste and save money while creating 
+                    amazing meals.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
+        </section>
 
-          <div className="max-w-5xl mx-auto mt-16">
-            <h2 className="text-4xl font-bold text-center my-12 text-[#193722]">
-              How Frigo Works Its Magic
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              {[
-                { title: 'Capture Ingredients', img: 'camera.png' },
-                { title: 'Recognize Ingredients', img: 'ingredients.jpg' },
-                { title: 'Match Recipe', img: 'onlinerec.jpg' },
-                { title: 'Cook, Eat, Repeat', img: 'food.jpg' }
-              ].map((item, index) => (
-                <div key={index} className="bg-white bg-opacity-60 backdrop-filter backdrop-blur-lg rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
-                  <img
-                    src={item.img}
-                    alt={item.title}
-                    className="w-full h-64 object-cover"
-                  />
-                  <div className="p-6">
-                    <h3 className="text-2xl font-bold text-[#193722] mb-4">{`${index + 1}. ${item.title}`}</h3>
-                    <p className="text-lg text-[#193722]">
-                    </p>
+        {/* Stats Section */}
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-5xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-8">
+                {stats.map((stat, index) => (
+                  <div 
+                    key={index}
+                    className="bg-white rounded-2xl p-6 text-center shadow-lg"
+                  >
+                    <div className="text-4xl font-bold text-amber-500 mb-2">
+                      {stat.value}
+                    </div>
+                    <p className="text-gray-600">{stat.label}</p>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-        <Footer />
-      </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+                How Frigo Works Its Magic
+              </h2>
+              <div className="grid md:grid-cols-2 gap-8">
+                {features.map((feature, index) => (
+                  <div 
+                    key={index}
+                    className="group relative bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                  >
+                    <div className="aspect-w-16 aspect-h-9">
+                      <img
+                        src={feature.image}
+                        alt={feature.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <div className={`${feature.color} w-12 h-12 rounded-xl flex items-center justify-center mb-4`}>
+                        <feature.icon className="w-6 h-6 text-gray-700" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        {`${index + 1}. ${feature.title}`}
+                      </h3>
+                      <p className="text-gray-600">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-16 bg-amber-500">
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto text-center text-white">
+              <h2 className="text-3xl font-bold mb-6">
+                Ready to Reduce Food Waste?
+              </h2>
+              <p className="text-xl mb-8 opacity-90">
+                Join thousands of conscious cooks who are saving money and the planet with Frigo.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <a 
+                  href="/register"
+                  className="px-8 py-4 bg-white text-amber-500 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+                >
+                  Get Started Free
+                </a>
+                <a
+                  href="/generate"
+                  className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-semibold hover:bg-white/10 transition-colors"
+                >
+                  Try Demo
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
     </div>
   );
 };

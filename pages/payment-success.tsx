@@ -1,49 +1,19 @@
-// pages/payment-success.js
-import React, { useEffect, useState } from 'react';
+// pages/payment-success.tsx
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { auth, updateUserSubscription } from '../pages/api/firebase'; // Adjust the import path as needed
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from './api/firebase';
+import { ChefHat, Check, ArrowRight, RefreshCw } from 'lucide-react';
+import Header from "../components/header/Header";
+import Footer from "../components/footer/Footer";
 
-const PaymentSuccess = () => {
+const PaymentSuccess: React.FC = () => {
   const router = useRouter();
-  const { session_id } = router.query;
-  const [verificationStatus, setVerificationStatus] = useState('verifying');
-  const [secondsLeft, setSecondsLeft] = useState(5);
+  const [user, loading] = useAuthState(auth);
+  const [secondsLeft, setSecondsLeft] = useState(10); 
 
   useEffect(() => {
-    if (session_id) {
-      verifyPayment(session_id);
-    }
-  }, [session_id]);
-
-  const verifyPayment = async (sessionId) => {
-    try {
-      const response = await fetch('/api/verify-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        const user = auth.currentUser;
-        if (user) {
-          await updateUserSubscription(user.uid, 'premium', sessionId);
-          setVerificationStatus('success');
-          startRedirectTimer();
-        } else {
-          setVerificationStatus('error');
-        }
-      } else {
-        setVerificationStatus('error');
-      }
-    } catch (error) {
-      console.error('Error verifying payment:', error);
-      setVerificationStatus('error');
-    }
-  };
-
-  const startRedirectTimer = () => {
+    // Start redirect timer when component mounts
     const timer = setInterval(() => {
       setSecondsLeft((prevSeconds) => {
         if (prevSeconds <= 1) {
@@ -56,49 +26,95 @@ const PaymentSuccess = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  };
+  }, [router]);
 
   const handleManualRedirect = () => {
     router.push('/generate');
   };
 
-  if (verificationStatus === 'verifying') {
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#fcf9ed]">
-        <h1 className="text-3xl font-bold text-[#193722] mb-4">Verifying Payment...</h1>
-        <p className="text-xl text-[#193722]">Please wait while we confirm your payment.</p>
-      </div>
-    );
-  }
-
-  if (verificationStatus === 'error') {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#fcf9ed]">
-        <h1 className="text-3xl font-bold text-[#193722] mb-4">Payment Verification Failed</h1>
-        <p className="text-xl text-[#193722] mb-4">We couldn't verify your payment. Please contact support.</p>
-        <button
-          onClick={() => router.push('/support')}
-          className="bg-[#193722] text-white py-2 px-4 rounded-full hover:bg-[#254b2d] transition-colors duration-300"
-        >
-          Contact Support
-        </button>
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100/50">
+        <Header />
+        <main className="flex-grow flex items-center justify-center px-4 py-16 pt-24">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Loading...</h1>
+              <p className="text-gray-600">Please wait a moment</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#fcf9ed]">
-      <h1 className="text-3xl font-bold text-[#193722] mb-4">Payment Successful!</h1>
-      <p className="text-xl text-[#193722] mb-8">Thank you for upgrading to Premium.</p>
-      <p className="text-lg text-[#193722] mb-4">
-        You will be redirected to the generate page in {secondsLeft} seconds...
-      </p>
-      <button
-        onClick={handleManualRedirect}
-        className="bg-[#193722] text-white py-2 px-4 rounded-full hover:bg-[#254b2d] transition-colors duration-300"
-      >
-        Go to Generate Page Now
-      </button>
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100/50">
+      <Header />
+      <main className="flex-grow flex items-center justify-center px-4 py-16 pt-24">
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-md w-full">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+              <Check className="text-green-500 w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
+            <p className="text-gray-600 mb-4">Thank you for upgrading to Premium. Your account has been upgraded!</p>
+            
+            <div className="bg-blue-50 rounded-lg p-4 mb-6 text-left">
+              <div className="flex items-center mb-2">
+                <RefreshCw className="text-blue-500 w-5 h-5 mr-2" />
+                <h3 className="font-semibold text-blue-800">Important Note</h3>
+              </div>
+              <p className="text-sm text-blue-700 mb-2">
+                It may take a few minutes for your premium benefits to become fully active in the system.
+              </p>
+              <p className="text-sm text-blue-700">
+                If you don't see your premium features right away, please try refreshing the page after a few minutes.
+              </p>
+            </div>
+            
+            <div className="bg-amber-50 rounded-lg p-4 mb-6">
+              <div className="flex items-center mb-2">
+                <ChefHat className="text-amber-500 w-5 h-5 mr-2" />
+                <h3 className="font-semibold text-amber-800">Your Premium Benefits</h3>
+              </div>
+              <ul className="text-sm text-amber-700 space-y-2 text-left">
+                <li className="flex items-center">
+                  <span className="w-1 h-1 bg-amber-500 rounded-full mr-2"></span>
+                  10 recipe generations per day
+                </li>
+                <li className="flex items-center">
+                  <span className="w-1 h-1 bg-amber-500 rounded-full mr-2"></span>
+                  50 recipe suggestions per scan
+                </li>
+                <li className="flex items-center">
+                  <span className="w-1 h-1 bg-amber-500 rounded-full mr-2"></span>
+                  Access to premium recipes
+                </li>
+                <li className="flex items-center">
+                  <span className="w-1 h-1 bg-amber-500 rounded-full mr-2"></span>
+                  Priority support
+                </li>
+              </ul>
+            </div>
+            
+            <p className="text-gray-600 mb-6">
+              You will be redirected to the recipe generator in {secondsLeft} seconds...
+            </p>
+            
+            <button
+              onClick={handleManualRedirect}
+              className="w-full py-3 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-colors flex items-center justify-center"
+            >
+              Start Generating Recipes Now
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 };
