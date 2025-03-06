@@ -20,7 +20,8 @@ import {
   Lock,
   ChevronRight,
   Loader,
-  X
+  X,
+  ChevronLeft
 } from 'lucide-react';
 
 interface RecipeProps {
@@ -115,17 +116,20 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   return (
     <div className={`bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 
       ${isLocked ? 'opacity-90' : 'hover:shadow-xl transform hover:-translate-y-1'}`}>
-      <div className="relative h-48">
+      <div className="relative h-36 sm:h-48">
         <img 
           src={recipe.image} 
           alt={recipe.title} 
           className={`w-full h-full object-cover ${isLocked ? 'filter blur-sm' : ''}`}
+          onError={(e) => {
+            e.currentTarget.src = "https://via.placeholder.com/400x300?text=Recipe+Image";
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         
         {isPremium && (
-          <div className="absolute top-4 left-4 bg-amber-500 text-white px-3 py-1 rounded-full flex items-center gap-2 text-sm">
-            <Crown className="w-4 h-4" />
+          <div className="absolute top-3 left-3 bg-amber-500 text-white px-2 py-1 rounded-full flex items-center gap-1 text-xs">
+            <Crown className="w-3 h-3" />
             <span>Premium</span>
           </div>
         )}
@@ -133,13 +137,14 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         {user && (
           <button
             onClick={handleSaveClick}
-            className={`absolute top-4 right-4 p-2 rounded-full bg-white/90 shadow-lg transition-all duration-300 
+            className={`absolute top-3 right-3 p-1.5 rounded-full bg-white/90 shadow-lg transition-all duration-300 
               ${isLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white'}
               ${isSaving ? 'animate-pulse' : ''}`}
             disabled={isLocked || isSaving}
+            aria-label={isSaved ? "Unsave recipe" : "Save recipe"}
           >
             <Heart 
-              className={`w-6 h-6 ${isSaved ? 'fill-red-500 stroke-red-500' : 'stroke-gray-600'}`}
+              className={`w-4 h-4 sm:w-5 sm:h-5 ${isSaved ? 'fill-red-500 stroke-red-500' : 'stroke-gray-600'}`}
             />
           </button>
         )}
@@ -147,11 +152,11 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         {isLocked && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
             <div className="text-center p-4 rounded-lg">
-              <Lock className="w-8 h-8 text-white mx-auto mb-2" />
-              <p className="text-white text-sm font-medium mb-1">Premium Recipe</p>
+              <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-white mx-auto mb-1 sm:mb-2" />
+              <p className="text-white text-xs sm:text-sm font-medium">Premium Recipe</p>
               <a 
                 href="/subscription"
-                className="text-amber-400 hover:text-amber-300 text-sm underline"
+                className="text-amber-400 hover:text-amber-300 text-xs sm:text-sm underline"
                 onClick={(e) => e.stopPropagation()}
               >
                 Upgrade to Access
@@ -161,26 +166,26 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         )}
       </div>
       
-      <div className="p-6">
-        <h3 className="font-bold text-xl mb-4 text-gray-800 line-clamp-2">
+      <div className="p-4 sm:p-6">
+        <h3 className="font-bold text-base sm:text-xl mb-2 sm:mb-4 text-gray-800 line-clamp-2">
           {recipe.title}
         </h3>
         
-        <div className="flex flex-wrap gap-4 mb-6">
+        <div className="flex flex-wrap gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="flex items-center text-gray-600">
-            <Clock className="w-4 h-4 mr-1" />
-            <span className="text-sm">{recipe.readyInMinutes || '30'}min</span>
+            <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+            <span className="text-xs sm:text-sm">{recipe.readyInMinutes || '30'}min</span>
           </div>
           <div className="flex items-center text-gray-600">
-            <Users className="w-4 h-4 mr-1" />
-            <span className="text-sm">{recipe.servings || '4'} servings</span>
+            <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+            <span className="text-xs sm:text-sm">{recipe.servings || '4'} servings</span>
           </div>
         </div>
 
         <div className="space-y-2">
           <button
             onClick={() => !isLocked && onView(recipe)}
-            className={`w-full py-2.5 rounded-lg font-semibold transition-colors duration-300
+            className={`w-full py-2 sm:py-2.5 rounded-lg font-semibold transition-colors duration-300 text-xs sm:text-sm
               ${isLocked 
                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
                 : 'bg-amber-500 text-white hover:bg-amber-600'}`}
@@ -194,12 +199,13 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               href={recipe.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-2.5 flex items-center justify-center gap-2 bg-gray-50 
+              className="w-full py-2 sm:py-2.5 flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 
                        text-gray-700 rounded-lg font-semibold hover:bg-gray-100 
-                       transition-colors duration-300"
+                       transition-colors duration-300 text-xs sm:text-sm"
+              onClick={(e) => e.stopPropagation()}
             >
               <span>View Original</span>
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
             </a>
           )}
         </div>
@@ -293,21 +299,21 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
 
-      <div className="min-h-screen px-4 text-center">
+      <div className="min-h-screen px-2 sm:px-4 text-center">
         <span className="inline-block h-screen align-middle" aria-hidden="true">&#8203;</span>
         
         <div 
-          className="inline-block w-full max-w-2xl p-0 my-8 text-left align-middle transition-all transform bg-white shadow-xl rounded-xl overflow-hidden"
+          className="inline-block w-full max-w-2xl p-0 my-4 sm:my-8 text-left align-middle transition-all transform bg-white shadow-xl rounded-xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 z-20 p-2 rounded-full bg-white/90 hover:bg-white transition-colors duration-200 shadow-sm"
+            className="absolute right-3 top-3 z-20 p-2 rounded-full bg-white/90 hover:bg-white transition-colors duration-200 shadow-sm"
           >
             <X className="w-5 h-5 text-gray-600" />
           </button>
 
-          <div className="relative h-48">
+          <div className="relative h-40 sm:h-48">
             <img
               src={recipe.image}
               alt={recipe.title}
@@ -316,32 +322,32 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           </div>
 
-          <div className="p-6 max-h-[60vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">{recipe.title}</h2>
+          <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">{recipe.title}</h2>
 
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-amber-50 rounded-xl p-4 flex items-center gap-3">
-                <Clock className="w-6 h-6 text-amber-500" />
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div className="bg-amber-50 rounded-xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-gray-600">Time</p>
-                  <p className="font-semibold">{recipe.readyInMinutes || '30'} mins</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Time</p>
+                  <p className="font-semibold text-sm sm:text-base">{recipe.readyInMinutes || '30'} mins</p>
                 </div>
               </div>
-              <div className="bg-amber-50 rounded-xl p-4 flex items-center gap-3">
-                <Users className="w-6 h-6 text-amber-500" />
+              <div className="bg-amber-50 rounded-xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-gray-600">Servings</p>
-                  <p className="font-semibold">{recipe.servings || '4'}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Servings</p>
+                  <p className="font-semibold text-sm sm:text-base">{recipe.servings || '4'}</p>
                 </div>
               </div>
             </div>
 
             {recipe.diets && recipe.diets.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Dietary Info</h3>
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-4">Dietary Info</h3>
                 <div className="flex flex-wrap gap-2">
                   {recipe.diets.map((diet, index) => (
-                    <span key={index} className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+                    <span key={index} className="px-2 sm:px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs sm:text-sm">
                       {diet}
                     </span>
                   ))}
@@ -349,35 +355,35 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
               </div>
             )}
 
-            <div className="mb-8">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Ingredients</h3>
-              <div className="bg-gray-50 rounded-xl p-6">
+            <div className="mb-6 sm:mb-8">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-4">Ingredients</h3>
+              <div className="bg-gray-50 rounded-xl p-4 sm:p-6">
                 {isLoading ? (
                   <LoadingSpinner />
                 ) : (recipe.extendedIngredients ?? []).length > 0 ? (
-                  <ul className="space-y-3">
+                  <ul className="space-y-2 sm:space-y-3">
                     {(recipe.extendedIngredients ?? []).map((ingredient, index) => (
-                      <li key={index} className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-amber-500" />
-                        <span className="text-gray-700">{ingredient.original}</span>
+                      <li key={index} className="flex items-start gap-2 sm:gap-3">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
+                        <span className="text-sm sm:text-base text-gray-700">{ingredient.original}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-center text-gray-500">No ingredients information available</p>
+                  <p className="text-center text-sm sm:text-base text-gray-500">No ingredients information available</p>
                 )}
               </div>
             </div>
 
             {/* Instructions Section */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">Instructions</h3>
+            <div className="mb-6 sm:mb-8">
+              <div className="flex items-center justify-between mb-2 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900">Instructions</h3>
                 {hasInstructions && !isLoading && (
                   <div className="flex bg-gray-100 rounded-lg p-1">
                     <button
                       onClick={() => setViewMode('full')}
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 
+                      className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors duration-200 
                         ${viewMode === 'full' 
                           ? 'bg-white text-amber-500 shadow-sm' 
                           : 'text-gray-600 hover:text-amber-500'}`}
@@ -386,7 +392,7 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
                     </button>
                     <button
                       onClick={() => setViewMode('steps')}
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 
+                      className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors duration-200 
                         ${viewMode === 'steps' 
                           ? 'bg-white text-amber-500 shadow-sm' 
                           : 'text-gray-600 hover:text-amber-500'}`}
@@ -396,65 +402,65 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
                   </div>
                 )}
               </div>
-              <div className="bg-gray-50 rounded-xl p-6">
+              <div className="bg-gray-50 rounded-xl p-4 sm:p-6">
                 {isLoading ? (
                   <LoadingSpinner />
                 ) : !hasInstructions ? (
                   <div className="text-center py-4">
-                    <p className="text-gray-500">No instructions available</p>
+                    <p className="text-sm sm:text-base text-gray-500">No instructions available</p>
                     {recipe.sourceUrl && (
-                      <p className="mt-2 text-sm text-gray-500">
+                      <p className="mt-2 text-xs sm:text-sm text-gray-500">
                         Please check the original recipe for instructions
                       </p>
                     )}
                   </div>
                 ) : viewMode === 'full' ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {steps.map((step: string, index: number) => (
-                      <div key={index} className="flex gap-4">
-                        <div className="flex-shrink-0 w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-                          <span className="text-amber-600 font-semibold">{index + 1}</span>
+                      <div key={index} className="flex gap-2 sm:gap-4">
+                        <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                          <span className="text-amber-600 font-semibold text-sm sm:text-base">{index + 1}</span>
                         </div>
-                        <p className="text-gray-700 flex-grow pt-1">{step}</p>
+                        <p className="text-sm sm:text-base text-gray-700 flex-grow">{step}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
                       <button
                         onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
                         disabled={currentStep === 0}
-                        className={`p-2 rounded ${
+                        className={`p-1.5 sm:p-2 rounded ${
                           currentStep === 0 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'
                         }`}
                       >
-                        <ChevronRight className="w-5 h-5 rotate-180" />
+                        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-xs sm:text-sm text-gray-500">
                         Step {currentStep + 1} of {steps.length}
                       </span>
                       <button
                         onClick={() => setCurrentStep((prev) => Math.min(steps.length - 1, prev + 1))}
                         disabled={currentStep === steps.length - 1}
-                        className={`p-2 rounded ${
+                        className={`p-1.5 sm:p-2 rounded ${
                           currentStep === steps.length - 1
                             ? 'text-gray-300'
                             : 'text-gray-700 hover:bg-gray-100'
                         }`}
                       >
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
                     </div>
 
-                    <div className="relative bg-white rounded-lg p-4 shadow-sm">
+                    <div className="relative bg-white rounded-lg p-3 sm:p-4 shadow-sm">
                       <div className="absolute bottom-0 left-0 h-1 w-full bg-gray-200">
                         <div
                           className="h-full bg-amber-500 transition-all duration-300"
                           style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
                         />
                       </div>
-                      <p className="text-gray-700 whitespace-pre-line min-h-[60px]">
+                      <p className="text-sm sm:text-base text-gray-700 whitespace-pre-line min-h-[60px]">
                         {steps[currentStep]}
                       </p>
                     </div>
@@ -468,8 +474,8 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
                 href={recipe.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full py-3 bg-amber-500 text-white rounded-xl font-semibold 
-                         hover:bg-amber-600 transition-colors duration-300 text-center"
+                className="block w-full py-2.5 sm:py-3 bg-amber-500 text-white rounded-xl font-semibold 
+                         hover:bg-amber-600 transition-colors duration-300 text-center text-sm sm:text-base"
               >
                 View Original Recipe
               </a>

@@ -11,8 +11,10 @@ import {
   getDocs,
   deleteDoc,
   getFirestore, 
-  serverTimestamp 
+  serverTimestamp,
+  orderBy
 } from "firebase/firestore";
+import axios from 'axios';
 import { auth } from '../pages/api/firebase';
 
 interface Recipe {
@@ -45,7 +47,11 @@ export function useRecipeManagement() {
         setIsLoading(true);
         setError(null);
         
-        const savedRecipesSnapshot = await getDocs(collection(db, "users", user.uid, "savedRecipes"));
+        const savedRecipesQuery = query(
+          collection(db, "users", user.uid, "savedRecipes"),
+          orderBy("savedAt", "desc")
+        );
+        const savedRecipesSnapshot = await getDocs(savedRecipesQuery);
         const recipeIds = savedRecipesSnapshot.docs.map(doc => parseInt(doc.id));
         
         setSavedRecipeIds(recipeIds);
@@ -91,31 +97,24 @@ export function useRecipeManagement() {
       const recipeRef = doc(db, "users", user.uid, "savedRecipes", recipe.id.toString());
       await setDoc(recipeRef, recipeData);
       
+      // Also call the API for consistency
+      try {
+        await axios.post('/api/saveRecipe', {
+          recipe: recipeData,
+          action: 'save'
+        }, {
+          headers: {
+            'Authorization': `Bearer ${await user.getIdToken()}`
+          }
+        });
+      } catch (apiError) {
+        console.error("API call failed but Firestore update succeeded:", apiError);
+        // Continue anyway as the Firestore operation succeeded
+      }
+      
       // Update local state
       if (!savedRecipeIds.includes(recipe.id)) {
         setSavedRecipeIds(prev => [...prev, recipe.id]);
-      }
-      
-      // Update usage statistics
-      try {
-        const statsRef = doc(db, "users", user.uid, "usage", "statistics");
-        const statsDoc = await getDoc(statsRef);
-        
-        if (statsDoc.exists()) {
-          await setDoc(statsRef, {
-            totalRecipesSaved: statsDoc.data().totalRecipesSaved + 1 || 1,
-            lastUsageDate: serverTimestamp()
-          }, { merge: true });
-        } else {
-          await setDoc(statsRef, {
-            totalRecipesSaved: 1,
-            totalGenerations: 0,
-            lastUsageDate: serverTimestamp(),
-            createdAt: serverTimestamp()
-          });
-        }
-      } catch (statsError) {
-        console.error("Error updating statistics:", statsError);
       }
       
       return true;
@@ -142,6 +141,21 @@ export function useRecipeManagement() {
       // Delete from Firestore
       const recipeRef = doc(db, "users", user.uid, "savedRecipes", recipeId.toString());
       await deleteDoc(recipeRef);
+      
+      // Also call the API for consistency
+      try {
+        await axios.post('/api/saveRecipe', {
+          recipe: { id: recipeId },
+          action: 'remove'
+        }, {
+          headers: {
+            'Authorization': `Bearer ${await user.getIdToken()}`
+          }
+        });
+      } catch (apiError) {
+        console.error("API call failed but Firestore delete succeeded:", apiError);
+        // Continue anyway as the Firestore operation succeeded
+      }
       
       // Update local state
       setSavedRecipeIds(prev => prev.filter(id => id !== recipeId));

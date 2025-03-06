@@ -49,7 +49,9 @@ export const checkAndUpdateGenerationLimit = async (userId: string): Promise<boo
     const refreshedData = userDoc.data() || {};
     const dailyGenerations = refreshedData.dailyGenerations || 0;
     const subscriptionTier = (refreshedData.subscriptionTier || 'free').toLowerCase();
-    const maxGenerations = subscriptionTier === 'premium' ? 10 : 3;
+    
+    // Update this line - change free tier from 3 to 1
+    const maxGenerations = subscriptionTier === 'premium' ? 10 : 1;
 
     console.log(`User ${userId} subscription tier: ${subscriptionTier}`);
     console.log(`User ${userId} daily generations: ${dailyGenerations}/${maxGenerations}`);

@@ -187,10 +187,11 @@ export const getUserSubscriptionStatus = async (userId: string) => {
     const trialEnd = userData.trialEndDate ? new Date(userData.trialEndDate) : null;
     const isInTrial = trialEnd ? now < trialEnd : false;
 
+    // Update the maxGenerations to 1 for free tier
     const limits = {
-      maxGenerations: subscriptionTier === 'premium' ? 10 : 3,
-      maxSuggestions: subscriptionTier === 'premium' ? 50 : 6,
-      remainingGenerations: (subscriptionTier === 'premium' ? 10 : 3) - (userData.dailyGenerations || 0)
+      maxGenerations: subscriptionTier === 'premium' ? 10 : 1,
+      maxSuggestions: subscriptionTier === 'premium' ? 25 : 6,
+      remainingGenerations: (subscriptionTier === 'premium' ? 10 : 1) - (userData.dailyGenerations || 0)
     };
 
     return {

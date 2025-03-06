@@ -116,12 +116,12 @@ export default async function handler(
 
     // For free users, mark recipes beyond the first 6 as premium only
     let processedRecipes = response.data;
-    if (!isPremium && processedRecipes.length > 6) {
-      processedRecipes = processedRecipes.map((recipe, index) => ({
-        ...recipe,
-        isPremiumOnly: index >= 6
-      }));
-    }
+if (!isPremium && processedRecipes.length > 6) {
+  processedRecipes = processedRecipes.map((recipe, index) => ({
+    ...recipe,
+    isPremiumOnly: index >= 6
+  }));
+}
 
     console.log(`Found ${processedRecipes.length} recipes from Spoonacular API`);
     

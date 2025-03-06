@@ -34,15 +34,15 @@ const Alert: React.FC<AlertProps> = ({ type, message, onClose }) => {
   return (
     <div className={`rounded-lg p-4 mb-4 flex items-center justify-between ${colors[type]} border`}>
       <div className="flex items-center gap-2">
-        {type === 'error' && <AlertCircle className="h-5 w-5" />}
-        {type === 'success' && <Check className="h-5 w-5" />}
-        {type === 'warning' && <AlertCircle className="h-5 w-5" />}
+        {type === 'error' && <AlertCircle className="h-5 w-5 flex-shrink-0" />}
+        {type === 'success' && <Check className="h-5 w-5 flex-shrink-0" />}
+        {type === 'warning' && <AlertCircle className="h-5 w-5 flex-shrink-0" />}
         <p className="text-sm">{message}</p>
       </div>
       {onClose && (
         <button 
           onClick={onClose} 
-          className="p-1.5 hover:bg-black/5 rounded-full transition-colors"
+          className="p-1.5 hover:bg-black/5 rounded-full transition-colors flex-shrink-0"
           aria-label="Close alert"
         >
           <X className="h-4 w-4" />
@@ -89,25 +89,25 @@ const SubscriptionBanner: React.FC<SubscriptionBannerProps> = ({ status }) => {
 
   return (
     <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+        <div className="flex items-center gap-2 mb-2 sm:mb-0">
           {isPremium ? <Crown className="w-5 h-5 text-amber-600" /> : null}
           <span className="font-medium text-amber-800">
             {isPremium ? 'Premium Plan' : 'Free Plan'}
           </span>
         </div>
         <span className="text-sm text-amber-700">
-          {limits.remainingGenerations} of {limits.maxGenerations} generations left today
+          {limits.remainingGenerations} of {limits.maxGenerations} generation{limits.maxGenerations !== 1 ? 's' : ''} left today
         </span>
       </div>
-      <div className="flex items-center justify-between text-sm text-amber-600">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-amber-600">
         <span>
           {isPremium 
             ? 'Up to 25 recipe suggestions per generation' 
             : 'Up to 6 recipe suggestions per generation'}
         </span>
         {!isPremium && (
-          <a href="/subscription" className="text-amber-700 hover:text-amber-800 font-medium">
+          <a href="/subscription" className="text-amber-700 hover:text-amber-800 font-medium mt-2 sm:mt-0">
             Upgrade →
           </a>
         )}
@@ -172,7 +172,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onRecipesGenerated, setIsLoadin
     if (subscriptionStatus?.limits?.remainingGenerations !== undefined && subscriptionStatus.limits.remainingGenerations <= 0) {
       setAlert({
         type: 'warning',
-        message: 'Daily generation limit reached. Please upgrade to premium for more generations.'
+        message: subscriptionStatus.subscriptionTier === 'premium'
+          ? 'Daily generation limit reached. Try again tomorrow!'
+          : 'Daily generation limit reached. Upgrade to premium for more generations!'
       });
       return;
     }
@@ -275,7 +277,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onRecipesGenerated, setIsLoadin
     if (subscriptionStatus?.limits?.remainingGenerations !== undefined && subscriptionStatus.limits.remainingGenerations <= 0) {
       setAlert({
         type: 'warning',
-        message: 'Daily generation limit reached. Please upgrade to premium for more generations.'
+        message: subscriptionStatus.subscriptionTier === 'premium'
+          ? 'Daily generation limit reached. Try again tomorrow!'
+          : 'Daily generation limit reached. Upgrade to premium for more generations!'
       });
       return;
     }
@@ -308,7 +312,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onRecipesGenerated, setIsLoadin
           console.error('Error response:', errorData);
           
           if (response.status === 429) {
-            errorMessage = 'Daily generation limit reached. Please upgrade to premium for more generations.';
+            errorMessage = subscriptionStatus?.subscriptionTier === 'premium'
+              ? 'Daily generation limit reached. Try again tomorrow!'
+              : 'Daily generation limit reached. Upgrade to premium for more generations!';
           } else if (errorData.error) {
             errorMessage = errorData.error;
           }
@@ -341,7 +347,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onRecipesGenerated, setIsLoadin
       const isPremium = subscriptionStatus?.subscriptionTier === 'premium';
       const successMessage = isPremium
         ? `Generated ${data.length} recipe suggestions!`
-        : `Generated ${data.length} recipe suggestions! Upgrade to Premium to unlock more recipes.`;
+        : `Generated 6 recipe suggestions! Upgrade to Premium to unlock more recipes.`;
       
       setAlert({ type: 'success', message: successMessage });
     } catch (error) {
@@ -355,6 +361,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onRecipesGenerated, setIsLoadin
   };
 
   const recipeCount = subscriptionStatus?.subscriptionTier === 'premium' ? 25 : 6;
+  const generationLimit = subscriptionStatus?.subscriptionTier === 'premium' ? 10 : 1;
 
   return (
     <div className="w-full space-y-6">
@@ -443,7 +450,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onRecipesGenerated, setIsLoadin
           <p className="mt-2 text-center text-sm text-gray-600">
             <a href="/subscription" className="text-amber-600 hover:text-amber-700">
               Upgrade to Premium
-            </a> to get up to 25 recipe suggestions
+            </a> to get {generationLimit === 1 ? '10 generations per day' : 'more recipes'}
           </p>
         )}
       </div>

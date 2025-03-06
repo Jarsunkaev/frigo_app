@@ -36,7 +36,7 @@ export default async function handler(
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
     
-    // Extract recipe data from request body
+    // Extract recipe data and action from request body
     const { recipe, action } = req.body;
     
     if (!recipe || !recipe.id) {
@@ -59,6 +59,20 @@ export default async function handler(
         timestamp: admin.firestore.FieldValue.serverTimestamp()
       });
       
+      // Update usage statistics - reduce the count if available
+      const statsRef = db.collection('users').doc(userId).collection('usage').doc('statistics');
+      const statsDoc = await statsRef.get();
+      
+      if (statsDoc.exists) {
+        const totalRecipesSaved = statsDoc.data()?.totalRecipesSaved || 0;
+        if (totalRecipesSaved > 0) {
+          await statsRef.update({
+            totalRecipesSaved: admin.firestore.FieldValue.increment(-1),
+            lastUsageDate: admin.firestore.FieldValue.serverTimestamp()
+          });
+        }
+      }
+      
       return res.status(200).json({ 
         success: true, 
         message: 'Recipe removed successfully',
@@ -68,8 +82,8 @@ export default async function handler(
       // Format recipe data for storage
       const recipeData = {
         id: recipe.id,
-        title: recipe.title,
-        image: recipe.image,
+        title: recipe.title || "Untitled Recipe",
+        image: recipe.image || '',
         readyInMinutes: recipe.readyInMinutes || 30,
         servings: recipe.servings || 4,
         sourceUrl: recipe.sourceUrl || '',
@@ -116,7 +130,7 @@ export default async function handler(
     console.error('Error in saveRecipe API:', error);
     return res.status(500).json({ 
       success: false, 
-      message: 'An error occurred while saving the recipe' 
+      message: 'An error occurred while processing the recipe' 
     });
   }
 }
