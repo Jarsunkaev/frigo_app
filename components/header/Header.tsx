@@ -63,6 +63,7 @@ const Header = () => {
       return [
         ...baseItems,
         { label: 'Generate', href: '/generate' },
+        { label: 'Meal Planner', href: '/meal-plan' },
         { label: 'My Recipes', href: '/recipes' },
         { label: 'My Subscription', href: '/subscription' },
       ];

@@ -29,6 +29,7 @@
     "firebase-admin": "^13.1.0",
     "formidable": "^3.5.1",
     "framer-motion": "^12.0.6",
+    "html2pdf.js": "^0.10.3",
     "jimp": "^0.22.12",
     "lodash": "^4.17.21",
     "lucide-react": "^0.427.0",
