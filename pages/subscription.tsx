@@ -7,10 +7,11 @@ import { auth } from './api/firebase';
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
 import { Loader, AlertCircle, Info, CheckCircle, Crown, Flame } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 export default function SubscriptionPage() {
   const [user, userLoading] = useAuthState(auth);
-  const { isPremium, subscription, loading: subLoading } = useSubscription();
+  const { isPremium, subscription, loading: subLoading, refreshSubscription } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
@@ -126,6 +127,46 @@ export default function SubscriptionPage() {
       setIsLoading(false);
     }
   };
+
+  const checkGenerationCount = async () => {
+    if (!user) return;
+    
+    setIsLoading(true); // Assuming you have setIsLoading from the component
+    
+    try {
+      const response = await fetch('/api/update-generation-count', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          action: 'check'
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Direct generation count check:', data);
+        
+        // Instead of trying to update subscription directly, 
+        // call the refreshSubscription function provided by the hook
+        refreshSubscription();
+        
+        // Show success message
+        setSuccessMessage(`Counter refreshed: ${data.remainingGenerations} generations left`);
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        throw new Error('Failed to check generation count');
+      }
+    } catch (error) {
+      console.error('Error checking generation count:', error);
+      setErrorMessage('Failed to refresh counter');
+      setTimeout(() => setErrorMessage(''), 3000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   const handleManageSubscription = async () => {
     console.log("Manage subscription clicked");
@@ -206,6 +247,10 @@ export default function SubscriptionPage() {
   // Get recipe counts for display
   const freeRecipeCount = 6;
   const premiumRecipeCount = 25; 
+  
+  // Get generation limits
+  const freeGenerationLimit = 1;
+  const premiumGenerationLimit = 10;
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100/50">
@@ -256,7 +301,7 @@ export default function SubscriptionPage() {
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="font-medium text-sm sm:text-base">Recipe Generations</p>
                   <p className="text-xl sm:text-2xl font-bold text-amber-500">
-                    {subscription?.limits.maxGenerations || 0} <span className="text-xs sm:text-sm text-gray-500">per day</span>
+                    {isPremium ? premiumGenerationLimit : freeGenerationLimit} <span className="text-xs sm:text-sm text-gray-500">per day</span>
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -330,8 +375,8 @@ export default function SubscriptionPage() {
                   <tbody className="divide-y divide-gray-100">
                     <tr>
                       <td className="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-800">Daily Recipe Generations</td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm text-gray-800">1</td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm text-gray-800">10</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm text-gray-800">{freeGenerationLimit}</td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm text-gray-800">{premiumGenerationLimit}</td>
                     </tr>
                     <tr>
                       <td className="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-800">Recipe Suggestions</td>
@@ -365,11 +410,11 @@ export default function SubscriptionPage() {
               <ul className="space-y-3">
                 <li className="flex items-start gap-2">
                   <CheckCircle className="text-amber-500 w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-amber-700">Generate up to 10 recipes daily instead of just 1</span>
+                  <span className="text-sm text-amber-700">Generate up to {premiumGenerationLimit} recipes daily instead of just {freeGenerationLimit}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="text-amber-500 w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-amber-700">Access 25 recipe suggestions per scan instead of 6</span>
+                  <span className="text-sm text-amber-700">Access {premiumRecipeCount} recipe suggestions per scan instead of {freeRecipeCount}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="text-amber-500 w-4 h-4 mt-0.5 flex-shrink-0" />

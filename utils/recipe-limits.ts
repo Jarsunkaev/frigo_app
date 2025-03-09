@@ -1,4 +1,4 @@
-// utils/generationLimit.ts
+// utils/recipe-limits.ts
 import { db, admin } from '../lib/firebaseAdmin';
 
 export const checkAndUpdateGenerationLimit = async (userId: string): Promise<boolean> => {
@@ -50,8 +50,7 @@ export const checkAndUpdateGenerationLimit = async (userId: string): Promise<boo
     const dailyGenerations = refreshedData.dailyGenerations || 0;
     const subscriptionTier = (refreshedData.subscriptionTier || 'free').toLowerCase();
     
-    // Update this line - change free tier from 3 to 1
-    const maxGenerations = subscriptionTier === 'premium' ? 10 : 1;
+    const maxGenerations = subscriptionTier === 'premium' ? 10 : 1; // Free tier limit = 1
 
     console.log(`User ${userId} subscription tier: ${subscriptionTier}`);
     console.log(`User ${userId} daily generations: ${dailyGenerations}/${maxGenerations}`);
@@ -61,19 +60,46 @@ export const checkAndUpdateGenerationLimit = async (userId: string): Promise<boo
       return false;
     }
 
-    // Increment counter
-    console.log(`Incrementing generation count for user: ${userId}`);
-    await userRef.update({
-      dailyGenerations: admin.firestore.FieldValue.increment(1),
-      lastGenerationDate: admin.firestore.FieldValue.serverTimestamp()
-    });
+    // FIX: Use a transaction to ensure atomic update
+    try {
+      await db.runTransaction(async (transaction) => {
+        // Get fresh user data within transaction
+        const userSnapshot = await transaction.get(userRef);
+        if (!userSnapshot.exists) {
+          throw new Error("User document doesn't exist!");
+        }
+        
+        const userData = userSnapshot.data() || {};
+        const currentCount = userData.dailyGenerations || 0;
+        
+        // Update the document in the transaction
+        transaction.update(userRef, {
+          dailyGenerations: currentCount + 1,
+          lastGenerationDate: admin.firestore.FieldValue.serverTimestamp()
+        });
+        
+        console.log(`Transaction prepared to update dailyGenerations from ${currentCount} to ${currentCount + 1}`);
+      });
+      
+      console.log("Transaction completed successfully");
+      
+      // Verify the update by reading the document again
+      const verificationDoc = await userRef.get();
+      const verificationData = verificationDoc.data() || {};
+      const newGenerationCount = verificationData.dailyGenerations || 0;
+      
+      console.log(`Verification: dailyGenerations is now ${newGenerationCount}`);
+      
+    } catch (transactionError) {
+      console.error("Transaction failed:", transactionError);
+      throw transactionError;
+    }
     
-    console.log(`Successfully updated generation count for user: ${userId}`);
     return true;
   } catch (error) {
     console.error(`Error in checkAndUpdateGenerationLimit for user ${userId}:`, error);
-    // In case of error, allow generation to proceed
-    // This prevents users from being blocked due to database errors
+    // In case of error, we'll still allow generation to proceed
+    // to prevent users from being blocked due to database errors
     return true;
   }
 };

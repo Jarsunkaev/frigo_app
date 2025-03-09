@@ -75,8 +75,8 @@ export const createUser = async (userId: string, email: string) => {
   }
 };
 
-export const getUserData = async (userId: string) => {
-  console.log(`Fetching user data: ${userId}`);
+export const getUserData = async (userId: string, cacheBuster?: number) => {
+  console.log(`Fetching user data: ${userId}${cacheBuster ? ` (cache: ${cacheBuster})` : ''}`);
   const userRef = doc(db, "users", userId);
   
   try {
@@ -102,7 +102,10 @@ export const getUserData = async (userId: string) => {
         userData.lastResetDate = now.toISOString();
       }
 
-      console.log(`User data fetched: ${userId}`);
+      console.log(`User data fetched: ${userId}`, { 
+        dailyGenerations: userData.dailyGenerations,
+        subscriptionTier: userData.subscriptionTier 
+      });
       return userData;
     }
     
@@ -115,8 +118,6 @@ export const getUserData = async (userId: string) => {
 };
 
 // Subscription management functions
-// Update these functions in your firebase.ts
-
 export const updateUserSubscription = async (
   userId: string,
   subscriptionTier: 'free' | 'premium',
@@ -171,9 +172,10 @@ export const updateUserSubscription = async (
   }
 };
 
-export const getUserSubscriptionStatus = async (userId: string) => {
+export const getUserSubscriptionStatus = async (userId: string, cacheBuster?: number) => {
   try {
-    const userData = await getUserData(userId);
+    // Using cacheBuster parameter to ensure we get fresh data
+    const userData = await getUserData(userId, cacheBuster);
     if (!userData) {
       throw new Error('User not found');
     }
@@ -187,11 +189,18 @@ export const getUserSubscriptionStatus = async (userId: string) => {
     const trialEnd = userData.trialEndDate ? new Date(userData.trialEndDate) : null;
     const isInTrial = trialEnd ? now < trialEnd : false;
 
-    // Update the maxGenerations to 1 for free tier
+    // Calculate remaining generations correctly
+    const dailyGenerations = userData.dailyGenerations || 0;
+    const maxGenerations = subscriptionTier === 'premium' ? 10 : 1;
+    const remainingGenerations = Math.max(0, maxGenerations - dailyGenerations);
+
+    // Always log this for debugging
+    console.log(`User ${userId} has ${remainingGenerations} generations left (${dailyGenerations}/${maxGenerations} used)`);
+
     const limits = {
-      maxGenerations: subscriptionTier === 'premium' ? 10 : 1,
+      maxGenerations: maxGenerations,
       maxSuggestions: subscriptionTier === 'premium' ? 25 : 6,
-      remainingGenerations: (subscriptionTier === 'premium' ? 10 : 1) - (userData.dailyGenerations || 0)
+      remainingGenerations: remainingGenerations
     };
 
     return {
@@ -308,7 +317,8 @@ export const checkAndUpdateGenerationLimit = async (userId: string): Promise<boo
 
     const userData = userDoc.data();
     const dailyGenerations = userData.dailyGenerations || 0;
-    const maxGenerations = userData.subscriptionTier === 'premium' ? 10 : 3;
+    const subscriptionTier = userData.subscriptionTier?.toLowerCase() || 'free';
+    const maxGenerations = subscriptionTier === 'premium' ? 10 : 1;
 
     if (dailyGenerations >= maxGenerations) {
       return false;

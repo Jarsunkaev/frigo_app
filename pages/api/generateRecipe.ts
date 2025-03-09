@@ -116,12 +116,12 @@ export default async function handler(
 
     // For free users, mark recipes beyond the first 6 as premium only
     let processedRecipes = response.data;
-if (!isPremium && processedRecipes.length > 6) {
-  processedRecipes = processedRecipes.map((recipe, index) => ({
-    ...recipe,
-    isPremiumOnly: index >= 6
-  }));
-}
+    if (!isPremium && processedRecipes.length > 6) {
+      processedRecipes = processedRecipes.map((recipe, index) => ({
+        ...recipe,
+        isPremiumOnly: index >= 6
+      }));
+    }
 
     console.log(`Found ${processedRecipes.length} recipes from Spoonacular API`);
     
@@ -139,6 +139,30 @@ if (!isPremium && processedRecipes.length > 6) {
     } catch (logError) {
       console.error('Error logging recipe generation:', logError);
       // Don't fail the request if logging fails
+    }
+    
+    // Double-check that the counter was actually incremented and force an update timestamp
+    try {
+      // Get the latest user document to verify the counter update
+      const latestUserDoc = await userRef.get();
+      
+      if (latestUserDoc.exists) {
+        const latestUserData = latestUserDoc.data();
+        console.log(`GENERATION COMPLETE - User ${userId} daily count is now: ${latestUserData.dailyGenerations}`);
+        
+        // Force a timestamp update to trigger listeners
+        await userRef.update({
+          lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Log updated user data for debugging
+        const verifyUserDoc = await userRef.get();
+        const verifyUserData = verifyUserDoc.data();
+        console.log(`VERIFIED: User ${userId} daily generations confirmed as: ${verifyUserData.dailyGenerations}`);
+      }
+    } catch (verifyError) {
+      console.error('Error verifying generation count update:', verifyError);
+      // Continue anyway, don't fail the request
     }
     
     return res.status(200).json(processedRecipes);

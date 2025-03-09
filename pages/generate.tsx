@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "./api/firebase";
+import { auth, getUserSubscriptionStatus } from "./api/firebase";
 import { useSubscription } from '../hooks/useSubscription';
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
@@ -318,7 +318,7 @@ function GeneratePage() {
       });
       return;
     }
-
+  
     if (subscription.generationsLeft <= 0) {
       setAlert({
         type: 'warning',
@@ -328,14 +328,14 @@ function GeneratePage() {
       });
       return;
     }
-
+  
     try {
       // Mark recipes as premium based on subscription status.
       const processedRecipes = newRecipes.map((recipe, index) => ({
         ...recipe,
         isPremiumOnly: subscription.tier === 'free' && index >= subscription.limits.maxSuggestions
       }));
-
+  
       setRecipes(processedRecipes);
       setFilteredRecipes(processedRecipes); // Initialize filtered recipes with all recipes
       setIsLoading(false);
@@ -351,6 +351,14 @@ function GeneratePage() {
         type: 'success',
         message: `Generated ${newRecipes.length} recipes based on your ingredients!`
       });
+      
+      // Add this code right here to update the remaining generations count
+      if (subscription) {
+        // Refetch subscription to update remaining generations count
+        const refreshedStatus = await getUserSubscriptionStatus(user.uid);
+        subscription.generationsLeft = refreshedStatus.limits.remainingGenerations;
+      }
+      
     } catch (error) {
       console.error('Error processing recipes:', error);
       setAlert({
@@ -359,7 +367,6 @@ function GeneratePage() {
       });
     }
   };
-
   const handleSaveRecipe = async (recipe: any) => {
     if (!user) {
       setAlert({

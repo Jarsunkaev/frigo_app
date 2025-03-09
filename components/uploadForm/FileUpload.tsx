@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, getUserSubscriptionStatus } from '../../pages/api/firebase';
 import { Camera, Plus, X, ChefHat, Check, AlertCircle, Crown, Lock } from 'lucide-react';
+import { useSubscription } from '../../hooks/useSubscription';
 
 const Spinner: React.FC = () => (
   <div className="flex justify-center items-center my-6">
@@ -132,6 +133,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onRecipesGenerated, setIsLoadin
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionBannerProps['status']>(initialSubscriptionStatus || null);
+  const { isPremium, subscription, loading: subLoading, refreshSubscription } = useSubscription();
 
   // Use the actual subscription status returned by getUserSubscriptionStatus
   useEffect(() => {
@@ -290,7 +292,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onRecipesGenerated, setIsLoadin
   
       console.log('Sending recipe generation request with ingredients:', ingredientsToUse);
   
-      // Call your generate recipe API
+      // Call the regular generate recipe API
       const response = await fetch('/api/generateRecipe', {
         method: 'POST',
         headers: { 
@@ -302,8 +304,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onRecipesGenerated, setIsLoadin
         })
       });
   
-      console.log('Response status:', response.status);
-      
+      // Check for errors
       if (!response.ok) {
         let errorMessage = 'Failed to generate recipes';
         
@@ -326,28 +327,59 @@ const FileUpload: React.FC<FileUploadProps> = ({ onRecipesGenerated, setIsLoadin
       }
   
       const data = await response.json();
-      console.log('Recipe data received:', data);
       
       if (typeof onRecipesGenerated === 'function') {
         onRecipesGenerated(data);
       }
       
-      // Update subscription status after successful generation
+      // Now explicitly call our direct counter update API to ensure the counter increments
       try {
-        const status = await getUserSubscriptionStatus(user.uid);
-        setSubscriptionStatus({
-          subscriptionTier: status.subscriptionTier,
-          limits: status.limits
+        console.log('Explicitly updating generation count via direct API');
+        const countUpdateResponse = await fetch('/api/update-generation-count', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: user.uid,
+            action: 'increment'
+          })
         });
-      } catch (statusError) {
-        console.error('Error updating subscription status:', statusError);
+        
+        if (countUpdateResponse.ok) {
+          const countData = await countUpdateResponse.json();
+          console.log('Generation count updated successfully:', countData);
+          
+          // Force immediate UI update to show correct remaining generations
+          if (subscriptionStatus) {
+            setSubscriptionStatus(prev => {
+              if (!prev) return null;
+              
+              console.log(`Updating UI from ${prev.limits.remainingGenerations} to ${countData.remainingGenerations} generations left`);
+              
+              return {
+                ...prev,
+                limits: {
+                  ...prev.limits,
+                  remainingGenerations: countData.remainingGenerations
+                }
+              };
+            });
+          }
+        } else {
+          console.error('Failed to update generation count via direct API');
+        }
+      } catch (countError) {
+        console.error('Error updating generation count:', countError);
+        // Non-fatal, continue with recipe display
       }
       
       // Update success message based on subscription tier
       const isPremium = subscriptionStatus?.subscriptionTier === 'premium';
+      const recipeCount = isPremium ? 25 : 6;
       const successMessage = isPremium
-        ? `Generated ${data.length} recipe suggestions!`
-        : `Generated 6 recipe suggestions! Upgrade to Premium to unlock more recipes.`;
+        ? `Generated ${recipeCount} recipe suggestions!`
+        : `Generated ${recipeCount} recipe suggestions! Upgrade to Premium to unlock more recipes.`;
       
       setAlert({ type: 'success', message: successMessage });
     } catch (error) {
