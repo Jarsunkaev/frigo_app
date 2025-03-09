@@ -420,24 +420,23 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
   // Debug log to check what's happening with the current day meals
   if (currentDay) {
     console.log('Current day meals:', currentDay.meals);
-    //console.log('Breakfast meals:', currentDay.meals.filter(meal => meal.mealType === 'breakfast'));
     console.log('Lunch meals:', currentDay.meals.filter(meal => meal.mealType === 'lunch'));
     console.log('Dinner meals:', currentDay.meals.filter(meal => meal.mealType === 'dinner'));
   }
 
   return (
-    <div id="meal-planner-view" className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-0">
+    <div id="meal-planner-view" className="bg-white rounded-xl shadow-lg p-3 sm:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-0">
           Weekly Meal Planner
         </h2>
-        <div className="flex gap-2">
+        <div className="flex w-full sm:w-auto gap-2 mt-2 sm:mt-0">
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="flex items-center gap-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex-1 sm:flex-initial"
           >
             <Filter className="w-4 h-4" />
-            <span>Settings</span>
+            <span className="hidden xs:inline">Settings</span>
           </button>
           <button
             onClick={() => {
@@ -447,12 +446,12 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                 setShowShoppingList(true);
               }
             }}
-            className="flex items-center gap-1 px-3 py-2 text-sm bg-amber-500 text-white hover:bg-amber-600 rounded-lg transition-colors"
+            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-amber-500 text-white hover:bg-amber-600 rounded-lg transition-colors flex-1 sm:flex-initial"
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>Shopping List</span>
+            <span className="hidden xs:inline">Shopping List</span>
             {shoppingList.length > 0 && (
-              <span className="ml-1 bg-white text-amber-500 rounded-full w-5 h-5 flex items-center justify-center text-xs">
+              <span className="bg-white text-amber-500 rounded-full w-5 h-5 flex items-center justify-center text-xs ml-1">
                 {shoppingList.length}
               </span>
             )}
@@ -489,7 +488,7 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
       {/* Display current ingredients being used */}
       {availableIngredients.length > 0 && (
         <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-lg">
-          <h3 className="font-medium text-amber-800 mb-2">Using these ingredients:</h3>
+          <h3 className="font-medium text-amber-800 mb-2 text-sm sm:text-base">Using these ingredients:</h3>
           <div className="flex flex-wrap gap-2">
             {availableIngredients.map((ingredient, index) => (
               <span key={index} className="px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs">
@@ -501,8 +500,8 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
       )}
 
       {showSettings && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h3 className="font-medium text-lg mb-4">Meal Plan Settings</h3>
+        <div className="mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <h3 className="font-medium text-base sm:text-lg mb-4">Meal Plan Settings</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Time Frame</label>
@@ -510,7 +509,7 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                 <button
                   type="button"
                   onClick={() => setSettings(prev => ({ ...prev, timeFrame: 'day' }))}
-                  className={`flex-1 px-4 py-2 text-sm font-medium ${
+                  className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium ${
                     settings.timeFrame === 'day'
                       ? 'bg-amber-500 text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -521,7 +520,7 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                 <button
                   type="button"
                   onClick={() => setSettings(prev => ({ ...prev, timeFrame: 'week' }))}
-                  className={`flex-1 px-4 py-2 text-sm font-medium ${
+                  className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium ${
                     settings.timeFrame === 'week'
                       ? 'bg-amber-500 text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -589,7 +588,7 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
             <button
               onClick={handleGenerateMealPlan}
               disabled={isLoading}
-              className="w-full py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
             >
               {isLoading ? 'Generating...' : 'Generate Meal Plan'}
             </button>
@@ -602,38 +601,39 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="fixed inset-0 bg-black/50" onClick={() => setShowShoppingList(false)} />
           <div className="relative min-h-screen px-4 flex items-center justify-center">
-            <div className="relative bg-white w-full max-w-2xl rounded-xl p-6 max-h-[80vh] overflow-y-auto">
+            <div className="relative bg-white w-full max-w-2xl rounded-xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setShowShoppingList(false)}
-                className="absolute right-4 top-4 p-1 rounded-full hover:bg-gray-100"
+                className="absolute right-3 top-3 p-1 rounded-full hover:bg-gray-100"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
               
-              <h3 className="text-xl font-bold mb-6 pr-8">Shopping List</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 pr-8">Shopping List</h3>
               
               {shoppingList.length === 0 ? (
                 <div className="text-center py-8">
-                  <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <ShoppingBag className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500">Your shopping list is empty</p>
-                  <p className="text-sm text-gray-400 mt-1">Generate a meal plan to see items you need to buy</p>
+                  <p className="text-xs sm:text-sm text-gray-400 mt-1">Generate a meal plan to see items you need to buy</p>
                 </div>
               ) : (
                 <div>
                   {Object.entries(groupedShoppingList).map(([aisle, items]) => (
                     <div key={aisle} className="mb-4">
-                      <h4 className="font-medium text-gray-700 mb-2">{aisle}</h4>
+                      <h4 className="font-medium text-gray-700 mb-2 text-sm sm:text-base">{aisle}</h4>
                       <ul className="bg-gray-50 rounded-lg p-3">
                         {items.map((item, index) => (
                           <li key={index} className="py-2 border-b border-gray-100 last:border-0">
-                            <div className="flex justify-between">
-                              <span className="font-medium">{item.name}</span>
-                              <span className="text-gray-600">
+                            <div className="flex flex-wrap sm:flex-nowrap justify-between">
+                              <span className="font-medium text-sm sm:text-base mb-1 sm:mb-0">{item.name}</span>
+                              <span className="text-gray-600 text-sm sm:text-base whitespace-nowrap ml-auto">
                                 {item.amount} {item.unit}
                               </span>
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
-                              Used in: {item.recipes.join(', ')}
+                              Used in: {item.recipes.slice(0, 2).join(', ')}
+                              {item.recipes.length > 2 && ` +${item.recipes.length - 2} more`}
                             </div>
                           </li>
                         ))}
@@ -641,7 +641,7 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                     </div>
                   ))}
                   
-                  <div className="flex gap-2 mt-4">
+                  <div className="flex flex-col sm:flex-row gap-2 mt-4">
                     <button
                       className="flex-1 py-2 flex items-center justify-center gap-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
                       onClick={() => {
@@ -712,6 +712,7 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                           <html>
                             <head>
                               <title>Shopping List</title>
+                              <meta name="viewport" content="width=device-width, initial-scale=1.0">
                               <style>
                                 body { font-family: Arial, sans-serif; padding: 20px; }
                                 h1 { text-align: center; margin-bottom: 20px; color: #f59e0b; }
@@ -725,6 +726,12 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                                   body { font-size: 12pt; }
                                   h1 { font-size: 18pt; }
                                   h2 { font-size: 14pt; }
+                                }
+                                @media screen and (max-width: 480px) {
+                                  body { padding: 10px; }
+                                  h1 { font-size: 18px; }
+                                  h2 { font-size: 16px; }
+                                  .item-header { flex-direction: column; }
                                 }
                               </style>
                             </head>
@@ -778,10 +785,10 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
           <p className="text-gray-600">Generating your personalized meal plan...</p>
         </div>
       ) : !mealPlan ? (
-        <div className="text-center py-12 bg-amber-50 rounded-lg">
-          <Calendar className="w-12 h-12 text-amber-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-800 mb-2">No Meal Plan Generated Yet</h3>
-          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+        <div className="text-center py-10 sm:py-12 bg-amber-50 rounded-lg">
+          <Calendar className="w-10 h-10 sm:w-12 sm:h-12 text-amber-400 mx-auto mb-4" />
+          <h3 className="text-base sm:text-lg font-medium text-gray-800 mb-2">No Meal Plan Generated Yet</h3>
+          <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto px-4">
             Generate a meal plan based on your available ingredients to see your weekly meals here
           </p>
           <button
@@ -795,40 +802,42 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
         <div>
           {/* Week day navigation */}
           {settings.timeFrame === 'week' && (
-            <div className="flex justify-between items-center mb-6 bg-gray-50 p-2 rounded-lg">
+            <div className="flex justify-between items-center mb-6 bg-gray-50 p-2 rounded-lg overflow-x-auto">
               <button
                 onClick={handlePrevDay}
                 disabled={!selectedDay || visibleDays.indexOf(selectedDay) === 0}
-                className={`p-1 rounded ${
+                className={`p-1 sm:p-2 rounded flex-shrink-0 ${
                   !selectedDay || visibleDays.indexOf(selectedDay) === 0
                     ? 'text-gray-300 cursor-not-allowed'
                     : 'text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               
-              <div className="flex-grow overflow-x-auto flex justify-center">
-                <div className="flex space-x-1">
+              <div className="flex-grow overflow-x-auto flex justify-center px-1">
+                <div className="flex space-x-1 min-w-0">
                   {visibleDays.map(day => (
                     <button
                       key={day}
                       onClick={() => setSelectedDay(day)}
-                      className={`px-3 py-1 rounded-md text-sm font-medium whitespace-nowrap ${
+                      className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap ${
                         selectedDay === day
                           ? 'bg-amber-500 text-white'
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                     >
-                      {dayLabels[day]}
+                      <span className="hidden xs:inline">{dayLabels[day]}</span>
+                      <span className="xs:hidden">{dayLabels[day].substring(0, 3)}</span>
                     </button>
                   ))}
                   
                   {!isPremium && (
                     <div className="relative flex items-center">
-                      <div className="px-3 py-1 rounded-md text-sm font-medium bg-gray-100 text-gray-400 flex items-center gap-1 cursor-not-allowed">
+                      <div className="px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-medium bg-gray-100 text-gray-400 flex items-center gap-1 cursor-not-allowed">
                         <Crown className="w-3 h-3" />
-                        <span>More Days</span>
+                        <span className="hidden xs:inline">More Days</span>
+                        <span className="xs:hidden">More</span>
                       </div>
                     </div>
                   )}
@@ -838,13 +847,13 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
               <button
                 onClick={handleNextDay}
                 disabled={!selectedDay || visibleDays.indexOf(selectedDay) === visibleDays.length - 1}
-                className={`p-1 rounded ${
+                className={`p-1 sm:p-2 rounded flex-shrink-0 ${
                   !selectedDay || visibleDays.indexOf(selectedDay) === visibleDays.length - 1
                     ? 'text-gray-300 cursor-not-allowed'
                     : 'text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           )}
@@ -852,30 +861,30 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
           {currentDay ? (
             <div>
               {/* Nutrition summary */}
-              <div className="bg-gray-50 rounded-lg p-3 mb-6">
-                <h3 className="font-medium text-gray-800 mb-2">Daily Nutrition</h3>
-                <div className="grid grid-cols-4 gap-2 text-center">
+              <div className="bg-gray-50 rounded-lg p-3 mb-5 sm:mb-6">
+                <h3 className="font-medium text-gray-800 mb-2 text-sm sm:text-base">Daily Nutrition</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                   <div className="bg-white p-2 rounded shadow-sm">
-                    <div className="text-sm text-gray-500">Calories</div>
-                    <div className="font-bold text-amber-500">
+                    <div className="text-xs sm:text-sm text-gray-500">Calories</div>
+                    <div className="font-bold text-amber-500 text-sm sm:text-base">
                       {Math.round(currentDay.nutrients.calories)}
                     </div>
                   </div>
                   <div className="bg-white p-2 rounded shadow-sm">
-                    <div className="text-sm text-gray-500">Protein</div>
-                    <div className="font-bold text-amber-500">
+                    <div className="text-xs sm:text-sm text-gray-500">Protein</div>
+                    <div className="font-bold text-amber-500 text-sm sm:text-base">
                       {Math.round(currentDay.nutrients.protein)}g
                     </div>
                   </div>
                   <div className="bg-white p-2 rounded shadow-sm">
-                    <div className="text-sm text-gray-500">Fat</div>
-                    <div className="font-bold text-amber-500">
+                    <div className="text-xs sm:text-sm text-gray-500">Fat</div>
+                    <div className="font-bold text-amber-500 text-sm sm:text-base">
                       {Math.round(currentDay.nutrients.fat)}g
                     </div>
                   </div>
                   <div className="bg-white p-2 rounded shadow-sm">
-                    <div className="text-sm text-gray-500">Carbs</div>
-                    <div className="font-bold text-amber-500">
+                    <div className="text-xs sm:text-sm text-gray-500">Carbs</div>
+                    <div className="font-bold text-amber-500 text-sm sm:text-base">
                       {Math.round(currentDay.nutrients.carbohydrates)}g
                     </div>
                   </div>
@@ -883,20 +892,20 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
               </div>
 
               {/* Meals list organized by meal type */}
-              <div className="space-y-8">
-                <h3 className="font-medium text-gray-800 mb-2">
+              <div className="space-y-6 sm:space-y-8">
+                <h3 className="font-medium text-gray-800 mb-2 text-sm sm:text-base">
                   Meals for {selectedDay ? dayLabels[selectedDay] : 'Today'}
                 </h3>
                 
                 {/* Breakfast Section */}
                 <div>
-                  <div className="flex items-center mb-4">
-                    <div className="bg-amber-100 p-2 rounded-full mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-700" viewBox="0 0 20 20" fill="currentColor">
+                  <div className="flex items-center mb-3 sm:mb-4">
+                    <div className="bg-amber-100 p-1.5 sm:p-2 rounded-full mr-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 text-amber-700" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <h4 className="text-lg font-bold text-amber-700">Breakfast</h4>
+                    <h4 className="text-base sm:text-lg font-bold text-amber-700">Breakfast</h4>
                   </div>
                   
                   {currentDay.meals.filter(meal => meal.mealType === 'breakfast').length > 0 ? (
@@ -905,8 +914,8 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                         .filter(meal => meal.mealType === 'breakfast')
                         .map((meal, index) => (
                           <div key={`breakfast-${index}`} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                            <div className="md:flex">
-                              <div className="md:w-1/3 h-40 md:h-auto relative">
+                            <div className="flex flex-col md:flex-row">
+                              <div className="md:w-1/3 h-36 sm:h-40 md:h-auto relative">
                                 <img
                                   src={`https://spoonacular.com/recipeImages/${meal.id}-556x370.${meal.imageType || 'jpg'}`}
                                   alt={meal.title}
@@ -919,30 +928,30 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                                   Breakfast
                                 </div>
                               </div>
-                              <div className="p-4 md:w-2/3">
-                                <h4 className="font-bold text-lg mb-2">{meal.title}</h4>
-                                <div className="flex flex-wrap gap-4 mb-3 text-sm text-gray-600">
+                              <div className="p-3 sm:p-4 md:w-2/3">
+                                <h4 className="font-bold text-base sm:text-lg mb-2 line-clamp-2">{meal.title}</h4>
+                                <div className="flex flex-wrap gap-3 sm:gap-4 mb-3 text-xs sm:text-sm text-gray-600">
                                   <div className="flex items-center">
-                                    <Clock className="w-4 h-4 mr-1" />
+                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                                     <span>{meal.readyInMinutes || 30} mins</span>
                                   </div>
                                   <div className="flex items-center">
-                                    <Users className="w-4 h-4 mr-1" />
+                                    <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                                     <span>{meal.servings || 4} servings</span>
                                   </div>
                                 </div>
-                                <div className="mt-4 flex gap-2">
+                                <div className="flex flex-wrap gap-2 mt-3 sm:mt-4">
                                   <a
                                     href={meal.sourceUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors text-sm"
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors text-xs sm:text-sm"
                                   >
                                     View Recipe
                                   </a>
                                   <button
                                     onClick={() => onAddToSavedRecipes && onAddToSavedRecipes(meal.id)}
-                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-sm"
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-xs sm:text-sm"
                                   >
                                     Save Recipe
                                   </button>
@@ -953,7 +962,7 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                         ))}
                     </div>
                   ) : (
-                    <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500">
+                    <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500 text-sm">
                       No breakfast recipes available for this day
                     </div>
                   )}
@@ -961,13 +970,13 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                 
                 {/* Lunch Section */}
                 <div>
-                  <div className="flex items-center mb-4">
-                    <div className="bg-green-100 p-2 rounded-full mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-700" viewBox="0 0 20 20" fill="currentColor">
+                  <div className="flex items-center mb-3 sm:mb-4">
+                    <div className="bg-green-100 p-1.5 sm:p-2 rounded-full mr-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 10a1 1 0 01-2 0V7a1 1 0 112 0v5z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <h4 className="text-lg font-bold text-green-700">Lunch</h4>
+                    <h4 className="text-base sm:text-lg font-bold text-green-700">Lunch</h4>
                   </div>
                   
                   {currentDay.meals.filter(meal => meal.mealType === 'lunch').length > 0 ? (
@@ -976,8 +985,8 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                         .filter(meal => meal.mealType === 'lunch')
                         .map((meal, index) => (
                           <div key={`lunch-${index}`} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                            <div className="md:flex">
-                              <div className="md:w-1/3 h-40 md:h-auto relative">
+                            <div className="flex flex-col md:flex-row">
+                              <div className="md:w-1/3 h-36 sm:h-40 md:h-auto relative">
                                 <img
                                   src={`https://spoonacular.com/recipeImages/${meal.id}-556x370.${meal.imageType || 'jpg'}`}
                                   alt={meal.title}
@@ -990,30 +999,30 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                                   Lunch
                                 </div>
                               </div>
-                              <div className="p-4 md:w-2/3">
-                                <h4 className="font-bold text-lg mb-2">{meal.title}</h4>
-                                <div className="flex flex-wrap gap-4 mb-3 text-sm text-gray-600">
+                              <div className="p-3 sm:p-4 md:w-2/3">
+                                <h4 className="font-bold text-base sm:text-lg mb-2 line-clamp-2">{meal.title}</h4>
+                                <div className="flex flex-wrap gap-3 sm:gap-4 mb-3 text-xs sm:text-sm text-gray-600">
                                   <div className="flex items-center">
-                                    <Clock className="w-4 h-4 mr-1" />
+                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                                     <span>{meal.readyInMinutes || 30} mins</span>
                                   </div>
                                   <div className="flex items-center">
-                                    <Users className="w-4 h-4 mr-1" />
+                                    <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                                     <span>{meal.servings || 4} servings</span>
                                   </div>
                                 </div>
-                                <div className="mt-4 flex gap-2">
+                                <div className="flex flex-wrap gap-2 mt-3 sm:mt-4">
                                   <a
                                     href={meal.sourceUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors text-sm"
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors text-xs sm:text-sm"
                                   >
                                     View Recipe
                                   </a>
                                   <button
                                     onClick={() => onAddToSavedRecipes && onAddToSavedRecipes(meal.id)}
-                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-sm"
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-xs sm:text-sm"
                                   >
                                     Save Recipe
                                   </button>
@@ -1024,7 +1033,7 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                         ))}
                     </div>
                   ) : (
-                    <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500">
+                    <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500 text-sm">
                       No lunch recipes available for this day
                     </div>
                   )}
@@ -1032,13 +1041,13 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                 
                 {/* Dinner Section */}
                 <div>
-                  <div className="flex items-center mb-4">
-                    <div className="bg-blue-100 p-2 rounded-full mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-700" viewBox="0 0 20 20" fill="currentColor">
+                  <div className="flex items-center mb-3 sm:mb-4">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-full mr-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 text-blue-700" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
                       </svg>
                     </div>
-                    <h4 className="text-lg font-bold text-blue-700">Dinner</h4>
+                    <h4 className="text-base sm:text-lg font-bold text-blue-700">Dinner</h4>
                   </div>
                   
                   {currentDay.meals.filter(meal => meal.mealType === 'dinner').length > 0 ? (
@@ -1047,8 +1056,8 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                         .filter(meal => meal.mealType === 'dinner')
                         .map((meal, index) => (
                           <div key={`dinner-${index}`} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                            <div className="md:flex">
-                              <div className="md:w-1/3 h-40 md:h-auto relative">
+                            <div className="flex flex-col md:flex-row">
+                              <div className="md:w-1/3 h-36 sm:h-40 md:h-auto relative">
                                 <img
                                   src={`https://spoonacular.com/recipeImages/${meal.id}-556x370.${meal.imageType || 'jpg'}`}
                                   alt={meal.title}
@@ -1061,30 +1070,30 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                                   Dinner
                                 </div>
                               </div>
-                              <div className="p-4 md:w-2/3">
-                                <h4 className="font-bold text-lg mb-2">{meal.title}</h4>
-                                <div className="flex flex-wrap gap-4 mb-3 text-sm text-gray-600">
+                              <div className="p-3 sm:p-4 md:w-2/3">
+                                <h4 className="font-bold text-base sm:text-lg mb-2 line-clamp-2">{meal.title}</h4>
+                                <div className="flex flex-wrap gap-3 sm:gap-4 mb-3 text-xs sm:text-sm text-gray-600">
                                   <div className="flex items-center">
-                                    <Clock className="w-4 h-4 mr-1" />
+                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                                     <span>{meal.readyInMinutes || 30} mins</span>
                                   </div>
                                   <div className="flex items-center">
-                                    <Users className="w-4 h-4 mr-1" />
+                                    <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                                     <span>{meal.servings || 4} servings</span>
                                   </div>
                                 </div>
-                                <div className="mt-4 flex gap-2">
+                                <div className="flex flex-wrap gap-2 mt-3 sm:mt-4">
                                   <a
                                     href={meal.sourceUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors text-sm"
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors text-xs sm:text-sm"
                                   >
                                     View Recipe
                                   </a>
                                   <button
                                     onClick={() => onAddToSavedRecipes && onAddToSavedRecipes(meal.id)}
-                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-sm"
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-xs sm:text-sm"
                                   >
                                     Save Recipe
                                   </button>
@@ -1095,7 +1104,7 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
                         ))}
                     </div>
                   ) : (
-                    <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500">
+                    <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500 text-sm">
                       No dinner recipes available for this day
                     </div>
                   )}
@@ -1104,16 +1113,16 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
 
               {/* Premium upgrade prompt */}
               {!isPremium && (
-                <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start">
-                  <Crown className="w-5 h-5 text-amber-500 mt-1 mr-3 flex-shrink-0" />
+                <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row sm:items-start gap-3">
+                  <Crown className="w-5 h-5 text-amber-500 mt-1 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium text-amber-800 mb-1">Upgrade to Premium</h4>
-                    <p className="text-sm text-amber-700 mb-3">
+                    <h4 className="font-medium text-amber-800 mb-1 text-sm sm:text-base">Upgrade to Premium</h4>
+                    <p className="text-xs sm:text-sm text-amber-700 mb-3">
                       Get access to full 7-day meal plans with our premium plan.
                     </p>
                     <a 
                       href="/subscription" 
-                      className="inline-block px-4 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600 transition-colors"
+                      className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-500 text-white rounded-lg text-xs sm:text-sm hover:bg-amber-600 transition-colors"
                     >
                       Upgrade Now
                     </a>
@@ -1123,7 +1132,7 @@ const MealPlannerView: React.FC<MealPlanProps> = ({
             </div>
           ) : (
             <div className="text-center py-8 bg-gray-50 rounded-lg">
-              <p className="text-gray-600">No meal data available for the selected day.</p>
+              <p className="text-gray-600 text-sm">No meal data available for the selected day.</p>
             </div>
           )}
         </div>

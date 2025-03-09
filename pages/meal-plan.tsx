@@ -15,7 +15,9 @@ import {
   AlertCircle, 
   ChevronRight,
   Clock,
-  LayoutGrid
+  LayoutGrid,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { collection, getDocs, query, orderBy, getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import axios from 'axios';
@@ -27,6 +29,7 @@ const MealPlanPage = () => {
   const [availableIngredients, setAvailableIngredients] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const db = getFirestore();
 
   useEffect(() => {
@@ -35,6 +38,19 @@ const MealPlanPage = () => {
       router.replace('/login');
     }
   }, [user, userLoading, router]);
+
+  // Automatically expand sidebar on larger screens and collapse on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      setSidebarCollapsed(window.innerWidth < 1024);
+    };
+
+    // Set initial state
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch saved recipes to extract ingredients
   useEffect(() => {
@@ -134,6 +150,24 @@ const MealPlanPage = () => {
     }
   };
 
+  const handleGenerateMealPlan = () => {
+    const mealPlannerView = document.getElementById('meal-planner-view');
+    if (mealPlannerView) {
+      mealPlannerView.scrollIntoView({ behavior: 'smooth' });
+      
+      // Find the generate meal plan button in the meal planner view and trigger a click
+      const generateButton = mealPlannerView.querySelector('button');
+      if (generateButton) {
+        generateButton.click();
+      }
+      
+      // On mobile, collapse the sidebar after generating
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(true);
+      }
+    }
+  };
+
   // Show loading state while checking auth or fetching subscription.
   if (userLoading || (user && subscriptionLoading)) {
     return (
@@ -158,32 +192,52 @@ const MealPlanPage = () => {
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white flex flex-col">
       <Header />
 
-      <main className="flex-grow container mx-auto px-4 pt-20 pb-16">
+      <main className="flex-grow container mx-auto px-3 sm:px-4 pt-20 pb-16">
         <div className="max-w-6xl mx-auto">
           {/* Page header */}
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Meal Planner</h1>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+          <div className="mb-6 sm:mb-8 text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Meal Planner</h1>
+            <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
               Plan your meals for the week based on ingredients you have, and get a shopping list for anything you're missing.
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center">
-              <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
-              <p className="text-sm">{error}</p>
+            <div className="mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" />
+              <p className="text-xs sm:text-sm">{error}</p>
             </div>
           )}
 
-          <div className="grid lg:grid-cols-4 gap-6">
+          {/* Mobile-friendly collapsible sidebar for ingredients */}
+          <div className="lg:hidden mb-4">
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="w-full flex items-center justify-between bg-white p-4 rounded-xl shadow-md"
+            >
+              <div className="flex items-center">
+                <span className="font-bold text-gray-900 mr-2">Your Ingredients</span>
+                <span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full">
+                  {availableIngredients.length}
+                </span>
+              </div>
+              {sidebarCollapsed ? (
+                <ChevronDown className="w-5 h-5 text-gray-500" />
+              ) : (
+                <ChevronUp className="w-5 h-5 text-gray-500" />
+              )}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Sidebar with available ingredients */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 sticky top-24">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Your Ingredients</h2>
+            <div className={`lg:col-span-1 ${sidebarCollapsed ? 'hidden lg:block' : 'block'}`}>
+              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:sticky lg:top-24">
+                <h2 className="text-lg font-bold text-gray-900 mb-4 hidden lg:block">Your Ingredients</h2>
                 
                 {isLoading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader className="animate-spin w-8 h-8 text-amber-500" />
+                  <div className="flex justify-center py-6 sm:py-8">
+                    <Loader className="animate-spin w-6 h-6 sm:w-8 sm:h-8 text-amber-500" />
                   </div>
                 ) : (
                   <>
@@ -216,7 +270,7 @@ const MealPlanPage = () => {
                       <p className="mt-1 text-xs text-gray-500">Press Enter to add an ingredient</p>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-3 mb-4 max-h-96 overflow-y-auto">
+                    <div className="bg-gray-50 rounded-lg p-3 mb-4 max-h-48 sm:max-h-64 lg:max-h-96 overflow-y-auto">
                       {availableIngredients.length === 0 ? (
                         <p className="text-center text-gray-500 text-sm py-4">
                           No ingredients added yet
@@ -241,24 +295,14 @@ const MealPlanPage = () => {
                       )}
                     </div>
 
-                    <p className="text-sm text-gray-600 mb-4">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-4">
                       These ingredients will be used to generate your meal plan. Add or remove ingredients to customize your plan.
                     </p>
 
                     <div className="text-center">
                       <button
-                        onClick={() => {
-                          const mealPlannerView = document.getElementById('meal-planner-view');
-                          if (mealPlannerView) {
-                            mealPlannerView.scrollIntoView({ behavior: 'smooth' });
-                            // Find the generate meal plan button in the meal planner view and trigger a click
-                            const generateButton = mealPlannerView.querySelector('button');
-                            if (generateButton) {
-                              generateButton.click();
-                            }
-                          }
-                        }}
-                        className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-amber-500 rounded-lg hover:bg-amber-600 transition-colors"
+                        onClick={handleGenerateMealPlan}
+                        className="w-full inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-white bg-amber-500 rounded-lg hover:bg-amber-600 transition-colors"
                       >
                         <Calendar className="w-4 h-4 mr-2" />
                         Generate Meal Plan
@@ -279,6 +323,17 @@ const MealPlanPage = () => {
           </div>
         </div>
       </main>
+
+      {/* Floating action button on mobile */}
+      <div className="lg:hidden fixed bottom-6 right-6 z-10">
+        <button
+          onClick={handleGenerateMealPlan}
+          className="flex items-center justify-center w-14 h-14 rounded-full bg-amber-500 text-white shadow-lg hover:bg-amber-600 transition-colors"
+          aria-label="Generate Meal Plan"
+        >
+          <Calendar className="w-6 h-6" />
+        </button>
+      </div>
 
       <Footer />
     </div>
