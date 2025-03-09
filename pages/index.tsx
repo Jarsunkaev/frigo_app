@@ -113,7 +113,7 @@ const LandingPage = () => {
           <nav className="hidden md:flex space-x-6">
             <a href="/" className="nav-item text-sm">Home</a>
             <a href="/generate" className="nav-item text-sm">Generate</a>
-            <a href="/meal-planner" className="nav-item text-sm">Meal Planner</a>
+            <a href="/meal-plan" className="nav-item text-sm">Meal Planner</a>
             <a href="/about" className="nav-item text-sm">About</a>
             <a href="/" className="nav-item text-sm" onClick={(e) => { e.preventDefault(); plansRef.current.scrollIntoView({ behavior: 'smooth' }); }}>Pricing</a>
             <a href="/login" className="nav-item text-sm">Login</a>
@@ -135,7 +135,7 @@ const LandingPage = () => {
           <div className="flex flex-col h-screen justify-center items-center space-y-6 p-4">
             <a href="/" className="text-xl font-medium" onClick={() => setIsMenuOpen(false)}>Home</a>
             <a href="/generate" className="text-xl font-medium" onClick={() => setIsMenuOpen(false)}>Generate</a>
-            <a href="/meal-planner" className="text-xl font-medium" onClick={() => setIsMenuOpen(false)}>Meal Planner</a>
+            <a href="/meal-plan" className="text-xl font-medium" onClick={() => setIsMenuOpen(false)}>Meal Planner</a>
             <a href="/about" className="text-xl font-medium" onClick={() => setIsMenuOpen(false)}>About</a>
             <a href="/" className="text-xl font-medium" onClick={(e) => { e.preventDefault(); plansRef.current.scrollIntoView({ behavior: 'smooth' }); setIsMenuOpen(false); }}>Pricing</a>
             <a href="/login" className="text-xl font-medium" onClick={() => setIsMenuOpen(false)}>Login</a>
