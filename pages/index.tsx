@@ -321,7 +321,7 @@ const LandingPage = () => {
                 title="Free"
                 price="$0"
                 features={[
-                  "1 recipe generations per day",
+                  "1 recipe generation per day",
                   "Basic ingredient recognition",
                   "6 recipe suggestions",
                   "Basic meal planning"
