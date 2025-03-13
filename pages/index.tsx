@@ -321,10 +321,9 @@ const LandingPage = () => {
                 title="Free"
                 price="$0"
                 features={[
-                  "3 recipe generations per day",
+                  "1 recipe generations per day",
                   "Basic ingredient recognition",
                   "6 recipe suggestions",
-                  "Community recipe sharing",
                   "Basic meal planning"
                 ]}
                 onChoosePlan={() => handleChoosePlan('free')}
@@ -335,10 +334,9 @@ const LandingPage = () => {
                 features={[
                   "10 recipe generations per day",
                   "Advanced ingredient recognition",
-                  "50 recipe suggestions per scan",
+                  "25 recipe suggestions per scan",
                   "Personalized nutrition tracking",
                   "Advanced meal planning",
-                  "Priority customer support"
                 ]}
                 isPopular={true}
                 onChoosePlan={() => handleChoosePlan('premium')}
