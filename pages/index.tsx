@@ -494,7 +494,7 @@ const LandingPage = () => {
               <h4 className="font-bold mb-4 text-base text-amber-400">Company</h4>
               <ul className="space-y-3">
                 <li><a href="/about" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">About</a></li>
-                <li><a href="#" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Contact</a></li>
+                <li><a href="/contact" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Contact</a></li>
               </ul>
             </div>
             <div>

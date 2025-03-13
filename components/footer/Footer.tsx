@@ -10,7 +10,7 @@ const Footer = () => {
 
   const footerLinks = {
     Product: ['Features', 'Pricing', 'FAQ'],
-    Company: ['About', 'Blog', 'Careers'],
+    Company: ['About', 'Contact'],
     Support: ['Help Center', 'Contact', 'Privacy']
   };
 
@@ -52,7 +52,7 @@ const Footer = () => {
                 {links.map((link) => (
                   <li key={link}>
                     <a
-                      href="#"
+                      href="/contact"
                       className="text-sm text-gray-400 hover:text-white transition duration-200"
                     >
                       {link}
