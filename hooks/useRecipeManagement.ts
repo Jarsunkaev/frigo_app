@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import axios from 'axios';
 import { auth } from '../pages/api/firebase';
+// First run: npm install axios @types/axiosimport { auth } from '../pages/api/firebase';
 
 interface Recipe {
   id: number;

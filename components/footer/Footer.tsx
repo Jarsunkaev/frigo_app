@@ -3,15 +3,35 @@ import { Instagram, Facebook, Twitter } from 'lucide-react';
 
 const Footer = () => {
   const socialLinks = [
-    { icon: Instagram, href: "https://instagram.com", label: "Instagram" },
+    { icon: Instagram, href: "https://www.instagram.com/frigo_recipies?igsh=enQ0dWo3NXlxb3Nu&utm_source=qr", label: "Instagram" },
     { icon: Facebook, href: "https://facebook.com", label: "Facebook" },
     { icon: Twitter, href: "https://twitter.com", label: "X (Twitter)" }
   ];
 
+  // Modify the footerLinks object directly
   const footerLinks = {
     Product: ['Features', 'Pricing', 'FAQ'],
     Company: ['About', 'Contact'],
-    Support: ['Help Center', 'Contact', 'Privacy']
+    Legal: ['Privacy Policy', 'Cookie Policy', 'Terms']
+  };
+
+  // Create a function to get the URL based on the section and link
+  const getUrl = (section: string, link: string) => {
+    if (section === 'Product') {
+      if (link === 'Features') return '/#features';
+      if (link === 'Pricing') return '/#pricing';
+      if (link === 'FAQ') return '/#faq';
+    }
+    if (section === 'Legal') {
+      if (link === 'Privacy Policy') return '/privacy-policy';
+      if (link === 'Cookie Policy') return '/cookie-policy';
+      if (link === 'Terms') return '/terms';
+    }
+    if (section === 'Company') {
+      if (link === 'About') return '/about';
+      if (link === 'Contact') return '/contact';
+    }
+    return '/';
   };
 
   return (
@@ -23,7 +43,7 @@ const Footer = () => {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center mb-4">
               <span className="text-2xl font-bold text-amber-500">FRIGO</span>
-              <img src="favicon.ico" alt="Frigo" className="h-8 w-8 ml-2" />
+              <img src="/favicon.ico" alt="Frigo" className="h-8 w-8 ml-2" />
             </div>
             <p className="text-gray-400 text-sm mb-6">
               Making sustainable cooking easy and delicious for everyone.
@@ -52,7 +72,7 @@ const Footer = () => {
                 {links.map((link) => (
                   <li key={link}>
                     <a
-                      href="/contact"
+                      href={getUrl(title, link)}
                       className="text-sm text-gray-400 hover:text-white transition duration-200"
                     >
                       {link}
@@ -66,11 +86,10 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-12 pt-8 text-center text-sm text-gray-400">
-          <p>&copy; {new Date().getFullYear()} FRIGO. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} FRIGO. All rights reserved.</p>
         </div>
       </div>
     </footer>
   );
 };
-
 export default Footer;

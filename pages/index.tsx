@@ -459,66 +459,68 @@ const LandingPage = () => {
 
       {/* Footer - Enhanced */}
       <footer className="bg-gray-900 text-white py-16 relative overflow-hidden">
-        <div className="absolute opacity-5 top-0 right-0 w-96 h-96 bg-amber-500 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-        <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-            <div className="col-span-2 md:col-span-1">
-              <h3 className="text-2xl font-bold mb-5 flex items-center">
-                Frigo
-                <span className="w-2 h-2 bg-amber-500 rounded-full ml-1.5"></span>
-              </h3>
-              <p className="text-gray-400 text-sm mb-6">
-                Making sustainable cooking easy and delicious for everyone.
-              </p>
-              <div className="flex gap-4">
-                {['twitter', 'facebook', 'instagram'].map((social) => (
-                  <a 
-                    key={social}
-                    href={`https://${social}.com`}
-                    className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-amber-500 hover:text-white transition duration-300"
-                    aria-label={`Visit our ${social} page`}
-                  >
-                    <div className="w-5 h-5 bg-white/20 rounded" />
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4 text-base text-amber-400">Product</h4>
-              <ul className="space-y-3">
-                <li><a href="/about" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Features</a></li>
-                <li><a href="#" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">FAQ</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4 text-base text-amber-400">Company</h4>
-              <ul className="space-y-3">
-                <li><a href="/about" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">About</a></li>
-                <li><a href="/contact" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4 text-base text-amber-400">Legal</h4>
-              <ul className="space-y-3">
-                <li><a href="#" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Privacy Policy</a></li>
-                <li><a href="#" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Terms of Service</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center">
-            <p className="text-sm text-gray-400">
-              &copy; {new Date().getFullYear()} Frigo. All rights reserved.
-            </p>
-            <div className="mt-4 flex items-center justify-center space-x-4">
-              <a href="#" className="text-xs text-gray-500 hover:text-amber-300 transition">Privacy</a>
-              <span className="text-gray-700">•</span>
-              <a href="#" className="text-xs text-gray-500 hover:text-amber-300 transition">Terms</a>
-              <span className="text-gray-700">•</span>
-              <a href="#" className="text-xs text-gray-500 hover:text-amber-300 transition">Cookies</a>
-            </div>
-          </div>
+  <div className="absolute opacity-5 top-0 right-0 w-96 h-96 bg-amber-500 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+  <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
+      <div className="col-span-2 md:col-span-1">
+        <h3 className="text-2xl font-bold mb-5 flex items-center">
+          Frigo
+          <span className="w-2 h-2 bg-amber-500 rounded-full ml-1.5"></span>
+        </h3>
+        <p className="text-gray-400 text-sm mb-6">
+          Making sustainable cooking easy and delicious for everyone.
+        </p>
+        <div className="flex gap-4">
+          {['twitter', 'facebook', 'instagram'].map((social) => (
+            <a 
+              key={social}
+              href={`https://${social}.com`}
+              className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-amber-500 hover:text-white transition duration-300"
+              aria-label={`Visit our ${social} page`}
+            >
+              <div className="w-5 h-5 bg-white/20 rounded" />
+            </a>
+          ))}
         </div>
-      </footer>
+      </div>
+      <div>
+        <h4 className="font-bold mb-4 text-base text-amber-400">Product</h4>
+        <ul className="space-y-3">
+          <li><a href="/#features" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Features</a></li>
+          <li><a href="/#pricing" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Pricing</a></li>
+          <li><a href="/#faq" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="font-bold mb-4 text-base text-amber-400">Company</h4>
+        <ul className="space-y-3">
+          <li><a href="/about" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">About</a></li>
+          <li><a href="/contact" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="font-bold mb-4 text-base text-amber-400">Legal</h4>
+        <ul className="space-y-3">
+          <li><a href="/privacy-policy" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Privacy Policy</a></li>
+          <li><a href="/cookie-policy" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Cookie Policy</a></li>
+          <li><a href="/terms" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div className="border-t border-gray-800 mt-12 pt-8 text-center">
+      <p className="text-sm text-gray-400">
+        &copy; {new Date().getFullYear()} Frigo. All rights reserved.
+      </p>
+      <div className="mt-4 flex items-center justify-center space-x-4">
+        <a href="/privacy-policy" className="text-xs text-gray-500 hover:text-amber-300 transition">Privacy</a>
+        <span className="text-gray-700">•</span>
+        <a href="/terms" className="text-xs text-gray-500 hover:text-amber-300 transition">Terms</a>
+        <span className="text-gray-700">•</span>
+        <a href="/cookie-policy" className="text-xs text-gray-500 hover:text-amber-300 transition">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
     </div>
   );
 };
