@@ -4,6 +4,9 @@ import axios from 'axios';
 import { checkAndUpdateGenerationLimit } from '../../utils/recipe-limits';
 import admin from '../../lib/firebaseAdmin';
 
+// Set a limit for anonymous users
+const GUEST_RECIPE_LIMIT = 6;
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -28,46 +31,45 @@ export default async function handler(
   try {
     console.log('Request body:', req.body);
     const { ingredients, userId } = req.body;
+    const isAnonymousUser = !userId || userId === 'anonymous';
 
     if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
       console.log('Invalid ingredients:', ingredients);
       return res.status(400).json({ error: 'Valid ingredients array is required' });
     }
-    if (!userId) {
-      console.log('Missing userId');
-      return res.status(400).json({ error: 'User ID is required' });
+
+    // For logged-in users, check generation limits
+    let isPremium = false;
+    let canGenerate = true;
+
+    if (!isAnonymousUser) {
+      console.log('Checking generation limit for user:', userId);
+      canGenerate = await checkAndUpdateGenerationLimit(userId);
+      
+      if (!canGenerate) {
+        console.log('User reached daily generation limit:', userId);
+        return res.status(429).json({ error: 'Daily generation limit reached. Please try again tomorrow or upgrade your plan.' });
+      }
+
+      // Check if the user is premium
+      const userRef = admin.firestore().collection('users').doc(userId);
+      const userDoc = await userRef.get();
+      
+      if (userDoc.exists) {
+        console.log('User document data:', userDoc.data());
+        const userData = userDoc.data();
+        isPremium = userData?.subscriptionTier === 'premium';
+      }
+    } else {
+      console.log('Processing as anonymous user');
     }
 
-    // Add more debug logs
-    console.log('Environment check:');
-    console.log('- NODE_ENV:', process.env.NODE_ENV);
-    console.log('- SPOONACULAR_API_KEY exists:', !!process.env.SPOONACULAR_API_KEY);
-    
-    // Check and update the generation limit
-    console.log('Checking generation limit for user:', userId);
-    const canGenerate = await checkAndUpdateGenerationLimit(userId);
-    if (!canGenerate) {
-      console.log('User reached daily generation limit:', userId);
-      return res.status(429).json({ error: 'Daily generation limit reached. Please try again tomorrow or upgrade your plan.' });
-    }
-    console.log('User has remaining generations:', userId);
-
-    // Check if the user is premium or free
-    const userRef = admin.firestore().collection('users').doc(userId);
-    const userDoc = await userRef.get();
-    
-    if (!userDoc.exists) {
-      console.log('User document not found');
-      return res.status(404).json({ error: 'User not found' });
+    // Anonymous users and free users get the same experience
+    if (isAnonymousUser) {
+      isPremium = false;
     }
     
-    // Print user document data for debugging
-    console.log('User document data:', userDoc.data());
-    
-    const userData = userDoc.data();
-    const isPremium = userData.subscriptionTier === 'premium';
-    
-    // Set the number of recipes based on subscription tier
+    // Set the number of recipes to fetch based on subscription tier
     const numberOfRecipes = isPremium ? '25' : '25'; // Get all 25 recipes but mark some as premium-only
     console.log(`User is ${isPremium ? 'premium' : 'free'}, fetching ${numberOfRecipes} recipes`);
 
@@ -114,55 +116,60 @@ export default async function handler(
       return res.status(500).json({ error: 'Invalid response format from recipe service' });
     }
 
-    // For free users, mark recipes beyond the first 6 as premium only
+    // For free/anonymous users, mark recipes beyond the first 6 as premium only
     let processedRecipes = response.data;
-    if (!isPremium && processedRecipes.length > 6) {
+    if (!isPremium && processedRecipes.length > GUEST_RECIPE_LIMIT) {
       processedRecipes = processedRecipes.map((recipe, index) => ({
         ...recipe,
-        isPremiumOnly: index >= 6
+        isPremiumOnly: index >= GUEST_RECIPE_LIMIT
       }));
     }
 
     console.log(`Found ${processedRecipes.length} recipes from Spoonacular API`);
     
-    // Log recipe generation for analytics
-    try {
-      await admin.firestore().collection('recipeGenerationLogs').add({
-        userId,
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        ingredientsCount: ingredients.length,
-        recipesCount: processedRecipes.length,
-        recipesShown: isPremium ? processedRecipes.length : Math.min(processedRecipes.length, 6),
-        subscriptionTier: isPremium ? 'premium' : 'free'
-      });
-      console.log('Successfully created recipe generation log');
-    } catch (logError) {
-      console.error('Error logging recipe generation:', logError);
-      // Don't fail the request if logging fails
-    }
-    
-    // Double-check that the counter was actually incremented and force an update timestamp
-    try {
-      // Get the latest user document to verify the counter update
-      const latestUserDoc = await userRef.get();
-      
-      if (latestUserDoc.exists) {
-        const latestUserData = latestUserDoc.data();
-        console.log(`GENERATION COMPLETE - User ${userId} daily count is now: ${latestUserData.dailyGenerations}`);
-        
-        // Force a timestamp update to trigger listeners
-        await userRef.update({
-          lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp()
+    // Log recipe generation for analytics (only for logged in users)
+    if (!isAnonymousUser) {
+      try {
+        await admin.firestore().collection('recipeGenerationLogs').add({
+          userId,
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          ingredientsCount: ingredients.length,
+          recipesCount: processedRecipes.length,
+          recipesShown: isPremium ? processedRecipes.length : Math.min(processedRecipes.length, GUEST_RECIPE_LIMIT),
+          subscriptionTier: isPremium ? 'premium' : 'free'
         });
-        
-        // Log updated user data for debugging
-        const verifyUserDoc = await userRef.get();
-        const verifyUserData = verifyUserDoc.data();
-        console.log(`VERIFIED: User ${userId} daily generations confirmed as: ${verifyUserData.dailyGenerations}`);
+        console.log('Successfully created recipe generation log');
+
+        // Double-check that the counter was actually incremented and force an update timestamp
+        try {
+          // Get the latest user document to verify the counter update
+          const userRef = admin.firestore().collection('users').doc(userId);
+          const latestUserDoc = await userRef.get();
+          
+          if (latestUserDoc.exists) {
+            const latestUserData = latestUserDoc.data();
+            console.log(`GENERATION COMPLETE - User ${userId} daily count is now: ${latestUserData.dailyGenerations}`);
+            
+            // Force a timestamp update to trigger listeners
+            await userRef.update({
+              lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Log updated user data for debugging
+            const verifyUserDoc = await userRef.get();
+            const verifyUserData = verifyUserDoc.data();
+            console.log(`VERIFIED: User ${userId} daily generations confirmed as: ${verifyUserData.dailyGenerations}`);
+          }
+        } catch (verifyError) {
+          console.error('Error verifying generation count update:', verifyError);
+          // Continue anyway, don't fail the request
+        }
+      } catch (logError) {
+        console.error('Error logging recipe generation:', logError);
+        // Don't fail the request if logging fails
       }
-    } catch (verifyError) {
-      console.error('Error verifying generation count update:', verifyError);
-      // Continue anyway, don't fail the request
+    } else {
+      console.log('Skipping logging for anonymous user');
     }
     
     return res.status(200).json(processedRecipes);

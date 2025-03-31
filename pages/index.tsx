@@ -1,7 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, ChefHat, Check, Menu, X, Leaf, DollarSign, Clock, Play, ArrowRight } from 'lucide-react';
+import { Camera, ChefHat, Check, Menu, X, Leaf, DollarSign, Clock, Play, ArrowRight, Download } from 'lucide-react';
 import FAQSection from '../components/footer/FAQItem';
 
+// BeforeInstallPromptEvent interface for PWA installation
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 const Statistic = ({ number, label }) => (
   <div className="text-center px-2 sm:px-4">
@@ -78,7 +83,6 @@ const VideoPreview = ({ onPlay }) => (
     className="video-card relative w-full rounded-2xl overflow-hidden cursor-pointer bg-gradient-to-br from-amber-50 via-amber-100 to-amber-200"
   >
     <div className="absolute inset-0 slime-animation opacity-60"></div>
-    
     <div className="relative p-1 sm:p-2 h-64 sm:h-80 md:h-96">
       <video
         className="w-full h-full rounded-xl object-cover"
@@ -90,13 +94,11 @@ const VideoPreview = ({ onPlay }) => (
         <source src="/tutorial.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
-      
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="play-button bg-white bg-opacity-90 rounded-full p-4 shadow-lg hover:bg-opacity-100 transition duration-300">
           <Play className="w-8 h-8 sm:w-10 sm:h-10 text-amber-500 ml-1" />
         </div>
       </div>
-      
       <div className="absolute bottom-4 left-4 right-4 bg-white bg-opacity-90 backdrop-blur-sm p-4 rounded-lg shadow-md">
         <h3 className="font-bold text-gray-800 text-sm sm:text-base">See FRIGO in action</h3>
         <p className="text-gray-600 text-xs sm:text-sm mt-1">Watch how easy it is to reduce food waste while making delicious meals</p>
@@ -108,13 +110,43 @@ const VideoPreview = ({ onPlay }) => (
 const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isIos, setIsIos] = useState(false);
+  const [hasInstalledPwa, setHasInstalledPwa] = useState(false);
+  const [showIosInstructions, setShowIosInstructions] = useState(false);
   const videoRef = useRef(null);
   const plansRef = useRef(null);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
 
   const toggleMenu = () => setIsMenuOpen((prevState) => !prevState);
-  
+
+  useEffect(() => {
+    // Check if app is already installed
+    if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
+      setHasInstalledPwa(true);
+      return; // Skip showing install options if already installed
+    }
+    
+    // Listen for beforeinstallprompt event (for browsers like Chrome/Android)
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Check if device is iOS
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+    const isSafari = /safari/.test(userAgent);
+    setIsIos(isIosDevice && isSafari);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
   const handleChoosePlan = (planType) => {
     const stripeCheckoutUrl = 'https://buy.stripe.com/test_28o6qugqF3gp1Lq7su';
     if (planType === 'premium') {
@@ -126,16 +158,37 @@ const LandingPage = () => {
   
   const handlePlayVideo = () => {
     setShowVideoModal(true);
-    // Allow a small delay for the modal to render before playing
     setTimeout(() => {
       if (videoRef.current) {
         videoRef.current.play().catch(error => {
           console.log('Autoplay prevented:', error);
-          // Most browsers require user interaction to start video playback
         });
       }
     }, 300);
   };
+
+  const handlePwaInstall = () => {
+    if (installPrompt && !isIos) {
+      // For Android/Chrome
+      installPrompt.prompt();
+      installPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+          setHasInstalledPwa(true);
+        }
+        // Reset the install prompt - it can only be used once
+        setInstallPrompt(null);
+      });
+    } else if (isIos) {
+      // For iOS, show instructions modal
+      setShowIosInstructions(true);
+    } else {
+      alert("Installation is not supported on this browser or the app is already installed.");
+    }
+  };
+
+  // Determine if we should show the install button based on platform and installation status
+  const shouldShowInstallButton = !hasInstalledPwa && (installPrompt || isIos);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -155,13 +208,10 @@ const LandingPage = () => {
   }, [isMenuOpen]);
 
   return (
-<div className="bg-gradient-to-b from-amber-50 to-amber-100/70 min-h-screen font-sans overflow-x-hidden">
-{/* Add custom styles */}
-
-      
+    <div className="bg-gradient-to-b from-amber-50 to-amber-100/70 min-h-screen font-sans overflow-x-hidden">
       {/* Header */}
       <header className="bg-white bg-opacity-90 backdrop-blur-lg fixed top-0 left-0 right-0 z-50 shadow-sm">
-          <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border py-4 sm:py-5 flex justify-between items-center">
+        <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border py-4 sm:py-5 flex justify-between items-center">
           <div className="flex items-center">
             <a href="/" className="text-2xl sm:text-3xl font-bold text-[#193722] mr-2">FRIGO</a>
             <img src="favicon.ico" className="h-6 w-6 sm:h-8 sm:w-8" alt="logo" />
@@ -235,7 +285,7 @@ const LandingPage = () => {
       )}
 
       <main className="pt-16 sm:pt-24">
-        {/* Hero Section with improved gradient */}
+        {/* Hero Section */}
         <section className="relative py-16 sm:py-24 overflow-hidden">
           <div className="absolute inset-0 hero-gradient z-0"></div>
           <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border relative z-10">
@@ -260,17 +310,23 @@ const LandingPage = () => {
                     <span>Start Cooking Smart</span>
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </button>
-                  <button 
-                    onClick={handlePlayVideo}
-                    className="bg-white text-amber-500 py-3 sm:py-4 px-8 rounded-lg font-bold text-base sm:text-lg hover:bg-gray-50 transition duration-300 shadow-sm hover:shadow-md text-center w-full sm:w-auto border border-amber-200"
-                  >
-                    Watch Demo
-                  </button>
+                  
+                  {/* Replace the blue install button with better styled one */}
+                  {shouldShowInstallButton && (
+                  <div className="md:hidden w-full">
+                    <button 
+                      onClick={handlePwaInstall}
+                      className="bg-black text-white py-3 sm:py-4 px-8 rounded-lg font-bold text-base sm:text-lg hover:bg-gray-900 transition duration-300 w-full sm:w-auto flex items-center justify-center group"
+                    >
+                      <Download className="w-5 h-5 mr-2 group-hover:animate-bounce" />
+                      <span>{isIos ? "Install on iPhone" : "Get the App"}</span>
+                    </button>
+                  </div>
+                )}
                 </div>
-                
               </div>
 
-              {/* Right: Enhanced Video Preview */}
+              {/* Right: Video Preview */}
               <div className="relative">
                 <VideoPreview onPlay={handlePlayVideo} />
               </div>
@@ -278,10 +334,10 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* Features Section with enhanced cards */}
+        {/* Features Section */}
         <section className="py-20 sm:py-28 bg-white">
-        <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border">
-                <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border">
+            <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-3xl sm:text-4xl font-bold mb-6">Smart Cooking for Modern Life</h2>
               <p className="text-lg sm:text-xl text-gray-600">
                 Discover how Frigo helps you cook smarter, eat healthier, and save money.
@@ -307,10 +363,10 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* Pricing Section with enhanced cards */}
+        {/* Pricing Section */}
         <section ref={plansRef} className="py-20 sm:py-28">
-        <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border">
+            <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-3xl sm:text-4xl font-bold mb-6">Simple, Transparent Pricing</h2>
               <p className="text-lg sm:text-xl text-gray-600">
                 Start free and upgrade when you're ready. No commitments or hidden fees.
@@ -375,10 +431,10 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* Success Stories Section - Redesigned */}
+        {/* Success Stories Section */}
         <section className="py-20 sm:py-28 bg-white">
-        <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border">
-        <div className="max-w-6xl mx-auto">
+          <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border">
+            <div className="max-w-6xl mx-auto">
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="md:order-2">
                   <div className="relative">
@@ -391,7 +447,6 @@ const LandingPage = () => {
                     />
                   </div>
                 </div>
-                
                 <div className="space-y-6 md:order-1">
                   <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
                     See Real Results
@@ -431,7 +486,7 @@ const LandingPage = () => {
         <FAQSection />
       </main>
 
-      {/* Modal for Video Playback - Enhanced */}
+      {/* Modal for Video Playback */}
       {showVideoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl">
@@ -456,74 +511,147 @@ const LandingPage = () => {
           </div>
         </div>
       )}
+      
+      {/* iOS Install Instructions Modal */}
+      {showIosInstructions && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="bg-white rounded-xl p-6 max-w-md mx-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-bold">Install FRIGO App</h3>
+        <button 
+          onClick={() => setShowIosInstructions(false)} 
+          className="p-1 text-gray-400 hover:text-gray-700 rounded-full"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="space-y-6">
+        <div>
+          <h4 className="font-medium mb-3 text-gray-800">For iPhone (Safari):</h4>
+          <ol className="space-y-3 text-sm">
+            <li className="flex items-start">
+              <span className="bg-amber-100 text-amber-800 rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">1</span>
+              <span>Tap the <span className="inline-block px-2 py-1 border rounded text-xs">Share</span> button</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-amber-100 text-amber-800 rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">2</span>
+              <span>Scroll down and select <span className="font-medium">Add to Home Screen</span></span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-amber-100 text-amber-800 rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">3</span>
+              <span>Tap <span className="font-medium">Add</span> in the top right</span>
+            </li>
+          </ol>
+        </div>
 
-      {/* Footer - Enhanced */}
-      <footer className="bg-gray-900 text-white py-16 relative overflow-hidden">
-  <div className="absolute opacity-5 top-0 right-0 w-96 h-96 bg-amber-500 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-  <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border">
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-      <div className="col-span-2 md:col-span-1">
-        <h3 className="text-2xl font-bold mb-5 flex items-center">
-          Frigo
-          <span className="w-2 h-2 bg-amber-500 rounded-full ml-1.5"></span>
-        </h3>
-        <p className="text-gray-400 text-sm mb-6">
-          Making sustainable cooking easy and delicious for everyone.
-        </p>
-        <div className="flex gap-4">
-          {['twitter', 'facebook', 'instagram'].map((social) => (
-            <a 
-              key={social}
-              href={`https://${social}.com`}
-              className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-amber-500 hover:text-white transition duration-300"
-              aria-label={`Visit our ${social} page`}
-            >
-              <div className="w-5 h-5 bg-white/20 rounded" />
-            </a>
-          ))}
+        <div>
+          <h4 className="font-medium mb-3 text-gray-800">For Android (Chrome):</h4>
+          <ol className="space-y-3 text-sm">
+            <li className="flex items-start">
+              <span className="bg-amber-100 text-amber-800 rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">1</span>
+              <span>Tap the <span className="inline-block px-2 py-1 border rounded text-xs">⋮</span> menu button</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-amber-100 text-amber-800 rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">2</span>
+              <span>Select <span className="font-medium">Install app</span></span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-amber-100 text-amber-800 rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">3</span>
+              <span>Confirm installation</span>
+            </li>
+          </ol>
+        </div>
+
+        <div>
+          <h4 className="font-medium mb-3 text-gray-800">For Desktop Browsers:</h4>
+          <ol className="space-y-3 text-sm">
+            <li className="flex items-start">
+              <span className="bg-amber-100 text-amber-800 rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">1</span>
+              <span>Look for the <Download className="inline-block w-4 h-4 mx-1" /> install icon</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-amber-100 text-amber-800 rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">2</span>
+              <span>Follow browser-specific prompts</span>
+            </li>
+          </ol>
         </div>
       </div>
-      <div>
-        <h4 className="font-bold mb-4 text-base text-amber-400">Product</h4>
-        <ul className="space-y-3">
-          <li><a href="/#features" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Features</a></li>
-          <li><a href="/#pricing" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Pricing</a></li>
-          <li><a href="/#faq" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">FAQ</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 className="font-bold mb-4 text-base text-amber-400">Company</h4>
-        <ul className="space-y-3">
-          <li><a href="/about" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">About</a></li>
-          <li><a href="/contact" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Contact</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 className="font-bold mb-4 text-base text-amber-400">Legal</h4>
-        <ul className="space-y-3">
-          <li><a href="/privacy-policy" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Privacy Policy</a></li>
-          <li><a href="/cookie-policy" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Cookie Policy</a></li>
-          <li><a href="/terms" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Terms of Service</a></li>
-        </ul>
-      </div>
-    </div>
-    <div className="border-t border-gray-800 mt-12 pt-8 text-center">
-      <p className="text-sm text-gray-400">
-        &copy; {new Date().getFullYear()} Frigo. All rights reserved.
-      </p>
-      <div className="mt-4 flex items-center justify-center space-x-4">
-        <a href="/privacy-policy" className="text-xs text-gray-500 hover:text-amber-300 transition">Privacy</a>
-        <span className="text-gray-700">•</span>
-        <a href="/terms" className="text-xs text-gray-500 hover:text-amber-300 transition">Terms</a>
-        <span className="text-gray-700">•</span>
-        <a href="/cookie-policy" className="text-xs text-gray-500 hover:text-amber-300 transition">Cookies</a>
-      </div>
+      <button
+        onClick={() => setShowIosInstructions(false)}
+        className="w-full mt-6 py-2.5 bg-black text-white rounded-lg font-medium hover:bg-gray-900 transition-all"
+      >
+        Got it!
+      </button>
     </div>
   </div>
-</footer>
+)}
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-16 relative overflow-hidden">
+        <div className="absolute opacity-5 top-0 right-0 w-96 h-96 bg-amber-500 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+        <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 box-border">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
+            <div className="col-span-2 md:col-span-1">
+              <h3 className="text-2xl font-bold mb-5 flex items-center">
+                Frigo
+                <span className="w-2 h-2 bg-amber-500 rounded-full ml-1.5"></span>
+              </h3>
+              <p className="text-gray-400 text-sm mb-6">
+                Making sustainable cooking easy and delicious for everyone.
+              </p>
+              <div className="flex gap-4">
+                {['twitter', 'facebook', 'instagram'].map((social) => (
+                  <a 
+                    key={social}
+                    href={`https://${social}.com`}
+                    className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-amber-500 hover:text-white transition duration-300"
+                    aria-label={`Visit our ${social} page`}
+                  >
+                    <div className="w-5 h-5 bg-white/20 rounded" />
+                  </a>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4 text-base text-amber-400">Product</h4>
+              <ul className="space-y-3">
+                <li><a href="/#features" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Features</a></li>
+                <li><a href="/#pricing" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Pricing</a></li>
+                <li><a href="/#faq" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">FAQ</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4 text-base text-amber-400">Company</h4>
+              <ul className="space-y-3">
+                <li><a href="/about" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">About</a></li>
+                <li><a href="/contact" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4 text-base text-amber-400">Legal</h4>
+              <ul className="space-y-3">
+                <li><a href="/privacy-policy" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Privacy Policy</a></li>
+                <li><a href="/cookie-policy" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Cookie Policy</a></li>
+                <li><a href="/terms" className="text-sm text-gray-400 hover:text-amber-300 transition duration-200">Terms of Service</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center">
+            <p className="text-sm text-gray-400">
+              &copy; {new Date().getFullYear()} Frigo. All rights reserved.
+            </p>
+            <div className="mt-4 flex items-center justify-center space-x-4">
+              <a href="/privacy-policy" className="text-xs text-gray-500 hover:text-amber-300 transition">Privacy</a>
+              <span className="text-gray-700">•</span>
+              <a href="/terms" className="text-xs text-gray-500 hover:text-amber-300 transition">Terms</a>
+              <span className="text-gray-700">•</span>
+              <a href="/cookie-policy" className="text-xs text-gray-500 hover:text-amber-300 transition">Cookies</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
 
 export default LandingPage;
-      

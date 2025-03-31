@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FRIGO - Offline</title>
+  <link rel="icon" href="/favicon.ico">
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: #fcf9ed;
+      color: #193722;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    .container {
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .logo {
+      font-size: 32px;
+      font-weight: bold;
+      color: #193722;
+      margin-bottom: 24px;
+    }
+    
+    .icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background-color: #FEF3C7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    h1 {
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+    
+    p {
+      color: #666;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    
+    .button {
+      background-color: #F59E0B;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background-color 0.3s;
+    }
+    
+    .button:hover {
+      background-color: #D97706;
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .wifi-icon {
+      position: relative;
+      width: 40px;
+      height: 40px;
+    }
+    
+    .wifi-circle {
+      position: absolute;
+      border: 3px solid #F59E0B;
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: flicker 2s infinite;
+    }
+    
+    .wifi-circle-1 {
+      width: 40px;
+      height: 40px;
+      top: 0;
+      left: 0;
+    }
+    
+    .wifi-circle-2 {
+      width: 28px;
+      height: 28px;
+      top: 6px;
+      left: 6px;
+      animation-delay: 0.2s;
+    }
+    
+    .wifi-circle-3 {
+      width: 16px;
+      height: 16px;
+      top: 12px;
+      left: 12px;
+      animation-delay: 0.4s;
+    }
+    
+    .wifi-slash {
+      position: absolute;
+      width: 40px;
+      height: 3px;
+      background-color: #EF4444;
+      transform: rotate(45deg);
+      top: 18.5px;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">FRIGO</div>
+    
+    <div class="icon">
+      <div class="wifi-icon">
+        <div class="wifi-circle wifi-circle-1"></div>
+        <div class="wifi-circle wifi-circle-2"></div>
+        <div class="wifi-circle wifi-circle-3"></div>
+        <div class="wifi-slash"></div>
+      </div>
+    </div>
+    
+    <h1>You're offline</h1>
+    <p>
+      It seems you're not connected to the internet right now. 
+      Some features of FRIGO may be unavailable while you're offline.
+    </p>
+    
+    <button class="button" onclick="window.location.reload()">
+      Try Again
+    </button>
+  </div>
+  
+  <script>
+    // When the user comes back online, automatically refresh the page
+    window.addEventListener('online', () => {
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>

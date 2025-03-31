@@ -213,6 +213,16 @@ function GeneratePage() {
   });
   const [filterCount, setFilterCount] = useState(0);
 
+  // Default subscription for anonymous users
+  const [anonymousSubscription, setAnonymousSubscription] = useState({
+    tier: 'free',
+    limits: {
+      maxGenerations: 1,
+      maxSuggestions: 6,
+      generationsLeft: 1
+    }
+  });
+
   useEffect(() => {
     // Calculate active filter count
     const count = 
@@ -221,13 +231,6 @@ function GeneratePage() {
       (activeFilters.sortBy !== 'default' ? 1 : 0);
     setFilterCount(count);
   }, [activeFilters]);
-
-  useEffect(() => {
-    // Only redirect to login if authentication is finished and there is no user.
-    if (!authLoading && !user) {
-      router.replace('/login');
-    }
-  }, [user, authLoading, router]);
 
   // Fetch trivia
   useEffect(() => {
@@ -244,7 +247,6 @@ function GeneratePage() {
   }, []);
 
   // Apply filters whenever recipes or activeFilters change
-  // This is purely a client-side operation and does not need subscription verification
   useEffect(() => {
     if (recipes.length === 0) {
       setFilteredRecipes([]);
@@ -291,7 +293,7 @@ function GeneratePage() {
     setFilteredRecipes(result);
   }, [recipes, activeFilters]);
 
-  // Fetch saved recipes
+  // Fetch saved recipes for logged-in users
   useEffect(() => {
     const fetchSavedRecipes = async () => {
       if (user) {
@@ -310,30 +312,15 @@ function GeneratePage() {
   }, [user]);
 
   const handleRecipesGenerated = async (newRecipes: any[]) => {
-    // This function needs subscription verification because it's related to generating new recipes
-    if (!subscription) {
-      setAlert({
-        type: 'error',
-        message: 'Unable to verify subscription status'
-      });
-      return;
-    }
-  
-    if (subscription.generationsLeft <= 0) {
-      setAlert({
-        type: 'warning',
-        message: subscription.tier === 'premium' 
-          ? 'Daily generation limit reached. Try again tomorrow!' 
-          : 'Daily generation limit reached. Upgrade to premium for more generations!'
-      });
-      return;
-    }
-  
+    // This function handles both logged-in and anonymous users
     try {
       // Mark recipes as premium based on subscription status.
+      const userSubscription = user ? subscription : anonymousSubscription;
+      const freeLimit = userSubscription.limits.maxSuggestions || 6;
+      
       const processedRecipes = newRecipes.map((recipe, index) => ({
         ...recipe,
-        isPremiumOnly: subscription.tier === 'free' && index >= subscription.limits.maxSuggestions
+        isPremiumOnly: index >= freeLimit
       }));
   
       setRecipes(processedRecipes);
@@ -347,18 +334,18 @@ function GeneratePage() {
         sortBy: 'default'
       });
       
-      setAlert({
-        type: 'success',
-        message: `Generated ${newRecipes.length} recipes based on your ingredients!`
-      });
-      
-      // Add this code right here to update the remaining generations count
-      if (subscription) {
-        // Refetch subscription to update remaining generations count
-        const refreshedStatus = await getUserSubscriptionStatus(user.uid);
-        subscription.generationsLeft = refreshedStatus.limits.remainingGenerations;
+      // Different messages based on user status
+      if (user) {
+        setAlert({
+          type: 'success',
+          message: `Generated ${newRecipes.length} recipes based on your ingredients!`
+        });
+      } else {
+        setAlert({
+          type: 'success',
+          message: `Generated recipes based on your ingredients! Sign in or upgrade to access all recipes.`
+        });
       }
-      
     } catch (error) {
       console.error('Error processing recipes:', error);
       setAlert({
@@ -367,10 +354,11 @@ function GeneratePage() {
       });
     }
   };
+
   const handleSaveRecipe = async (recipe: any) => {
     if (!user) {
       setAlert({
-        type: 'error',
+        type: 'info',
         message: 'Please sign in to save recipes'
       });
       return;
@@ -397,11 +385,14 @@ function GeneratePage() {
   };
 
   const handleViewRecipe = async (recipe: any) => {
-    // This function needs subscription verification for premium recipes
-    if (recipe.isPremiumOnly && subscription?.tier === 'free') {
+    // Check if this is a premium recipe and user is not premium
+    const userSubscription = user ? subscription : anonymousSubscription;
+    const isPremiumUser = userSubscription.tier === 'premium';
+    
+    if (recipe.isPremiumOnly && !isPremiumUser) {
       setAlert({
         type: 'info',
-        message: 'This is a premium recipe. Upgrade to view it!'
+        message: user ? 'This is a premium recipe. Upgrade to view it!' : 'Please sign in and upgrade to view premium recipes.'
       });
       return;
     }
@@ -430,24 +421,33 @@ function GeneratePage() {
     }
   };
 
-  // Filter handler - doesn't need subscription verification
+  // Filter handler
   const handleApplyFilters = (filters: RecipeFilters) => {
     setActiveFilters(filters);
     // The filtering itself is handled by the useEffect
   };
 
   // Prepare subscription status for FileUpload component
-  const subscriptionStatus = subscription ? {
-    subscriptionTier: subscription.tier,
-    limits: {
-      remainingGenerations: subscription.generationsLeft,
-      maxGenerations: subscription.limits.maxGenerations,
-      maxSuggestions: subscription.limits.maxSuggestions
-    }
-  } : null;
+  const subscriptionStatus = user ? 
+    (subscription ? {
+      subscriptionTier: subscription.tier,
+      limits: {
+        remainingGenerations: subscription.generationsLeft,
+        maxGenerations: subscription.limits.maxGenerations,
+        maxSuggestions: subscription.limits.maxSuggestions
+      }
+    } : null) : 
+    {
+      subscriptionTier: 'free',
+      limits: {
+        remainingGenerations: 1,
+        maxGenerations: 1,
+        maxSuggestions: 6
+      }
+    };
 
-  // Show loading state while checking auth or fetching subscription.
-  if (authLoading || (user && subscriptionLoading)) {
+  // Loading state for logged-in users
+  if (user && (authLoading || subscriptionLoading)) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100/50">
         <Header />
@@ -459,11 +459,6 @@ function GeneratePage() {
         <Footer />
       </div>
     );
-  }
-
-  // Do not render content while redirecting to login.
-  if (!user) {
-    return null;
   }
 
   return (
@@ -505,6 +500,22 @@ function GeneratePage() {
                 setIsLoading={setIsLoading}
                 subscriptionStatus={subscriptionStatus}
               />
+              
+              {!user && (
+                <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                  <p className="text-sm text-amber-800 mb-2">
+                    <strong>You're using Frigo as a guest.</strong> Sign in to save recipes and access more features!
+                  </p>
+                  <div className="flex gap-2">
+                    <a href="/login" className="text-xs px-3 py-1.5 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors">
+                      Sign In
+                    </a>
+                    <a href="/register" className="text-xs px-3 py-1.5 bg-white text-amber-700 border border-amber-300 rounded hover:bg-amber-50 transition-colors">
+                      Create Account
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -609,7 +620,7 @@ function GeneratePage() {
                       onSave={handleSaveRecipe}
                       isSaved={savedRecipes.includes(recipe.id)}
                       isPremium={recipe.isPremiumOnly}
-                      userSubscriptionTier={subscription?.tier}
+                      userSubscriptionTier={user ? subscription?.tier : 'free'}
                     />
                   ))}
                 </div>
@@ -656,7 +667,7 @@ function GeneratePage() {
           onClose={() => setSelectedRecipe(null)}
           isLoading={isLoadingRecipe}
           isPremium={selectedRecipe.isPremiumOnly}
-          userSubscriptionTier={subscription?.tier}
+          userSubscriptionTier={user ? subscription?.tier : 'free'}
         />
       )}
 
